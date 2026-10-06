@@ -1,0 +1,21 @@
+.share-dialog{max-width:480px;max-height:calc(100dvh - 24px);overflow:auto;padding:20px}
+.share-dialog h2{font-size:29px;line-height:1.1;margin:14px 0 16px}
+.share-dialog .dialog-header .icon-button{font-size:26px;min-height:30px;width:30px;height:30px;padding:0}
+.share-preview{display:flex;align-items:center;justify-content:center;min-height:100px}
+.share-preview img{display:block;max-width:100%;max-height:125px;border-radius:8px;box-shadow:0 2px 10px #0002}
+.share-actions{display:flex;gap:8px}
+.share-actions .button{flex:1;white-space:normal;font-size:12px;padding-inline:10px;text-decoration:none}
+.share-dialog .share-description{font-size:13px;line-height:1.4;margin:14px 0 4px}
+.share-dialog label{margin-top:16px}
+.share-link-row{display:flex;gap:8px;align-items:center}
+.share-link-row input{min-width:0;flex:1}
+.share-dialog .share-link-row .button{width:auto;margin:0;flex:none}
+.share-dialog .share-link-only{margin:10px auto 0;font-size:12px;display:flex}
+.share-dialog .share-note{margin:12px 0 0;padding-top:10px;font-size:11px;line-height:1.4}
+.share-dialog .share-feedback{font-size:12px;margin:8px 0 0;min-height:0}
+.share-dialog .share-feedback:empty{display:none}
+.export-share-actions{display:flex;gap:8px}
+.export-share-actions .button{flex:1}
+.export-dialog .export-copy{display:flex;margin:10px auto 0;font-size:12px}
+@media(max-width:400px){.share-dialog{padding:18px}.share-dialog h2{font-size:25px;margin:10px 0 12px}.share-preview img{max-height:95px}.share-dialog .button{min-height:40px;padding-block:8px}.share-dialog .share-description{font-size:12px;margin-top:8px}.share-dialog label{margin-top:12px}.export-share-actions .button{font-size:12px;padding-inline:8px}}
+@media(max-height:520px) and (min-width:540px){.share-dialog{max-width:640px;padding:16px;display:grid;grid-template-columns:180px 1fr;gap:8px 18px}.share-dialog:not([open]){display:none}.share-dialog .dialog-header,.share-dialog h2{grid-column:1/-1}.share-dialog h2{font-size:25px;margin:0}.share-preview{grid-column:1;grid-row:3/7}.share-preview img{max-height:175px;max-width:180px}.share-dialog .share-description{margin:0}.share-dialog .share-actions .button,.share-dialog label{margin:0}.share-dialog .share-actions,.share-dialog .share-link-row,.share-dialog .share-link-only{grid-column:2;margin:0}.share-dialog .share-note,.share-dialog .field-error,.share-dialog .share-feedback{grid-column:1/-1;margin:0;padding-top:6px}.share-dialog .button{min-height:34px;padding-block:7px}.share-dialog .share-link-row input{padding:8px}}
