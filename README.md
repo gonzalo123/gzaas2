@@ -38,7 +38,7 @@ El esquema incluye versión, texto, fuente, colores, textura, efecto, alineació
 
 El payload **no está cifrado ni firmado**: cualquier persona con el enlace puede leerlo y crear una variante. No hay enlaces revocables, cambios remotos, galería compartida ni tarjetas sociales por mensaje. No se incrustan fotos ni fuentes en cada enlace. Preservar `v1`, los identificadores y los recursos tipográficos permite seguir abriendo enlaces antiguos.
 
-Máximo 280 caracteres Unicode, 12 líneas y 4096 caracteres de fragmento; la decodificación valida tamaño, formato y listas cerradas de opciones. El texto del editor y del visor se presenta con SVG y animaciones CSS por letras, palabras o líneas; los grafemas Unicode mantienen juntos los emojis y sus modificadores. La exportación usa canvas con el mismo cálculo de texto y escena de fondo. El mensaje nunca se interpreta como HTML. La app respeta `prefers-reduced-motion` y ofrece controles etiquetados y texto alternativo para cada cartel. Los PNG muestran una composición estática del diseño, aunque el visor use animaciones. Las fuentes y la distribución exacta de emojis pueden variar por plataforma.
+Máximo 280 caracteres Unicode, 12 líneas y 4096 caracteres de fragmento; la decodificación valida tamaño, formato y listas cerradas de opciones. El texto del editor y del visor se presenta con SVG y animaciones CSS por letras, palabras o líneas; los grafemas Unicode mantienen juntos los emojis y sus modificadores. La exportación usa canvas con el mismo cálculo de texto y escena de fondo. El mensaje nunca se interpreta como HTML. La app respeta `prefers-reduced-motion` y ofrece controles etiquetados y texto alternativo para cada cartel. Los PNG muestran una composición estática del diseño, aunque el visor use animaciones. Los GIF se generan a 12 fps y 640 píxeles de lado mayor: un ciclo del texto o el tráiler completo. Su paleta de 256 colores por fotograma puede introducir bandas en degradados; los fondos continuos se recortan a la duración del clip. La generación del GIF es una acción explícita: conserva el movimiento aunque se solicite movimiento reducido, pero su vista previa muestra una imagen fija en ese caso. Las fuentes y la distribución exacta de emojis pueden variar por plataforma.
 
 ## Funciones
 
@@ -49,7 +49,7 @@ Máximo 280 caracteres Unicode, 12 líneas y 4096 caracteres de fragmento; la de
 - Ocho fondos: liso, aurora, nubes, atardecer, rayos, constelación, ajedrez y ondas; colores base y acento editables y movimiento independiente del texto. Texturas opcionales, sombras, contorno, neón y eco 3D.
 - Diseño adaptable a móvil y escritorio, con vista de lectura a toda pantalla.
 - Enlace comprimido, portapapeles con alternativa manual y Web Share cuando existe.
-- Exportación PNG local en 4:3, 1:1 y 3:4.
+- Descarga local en PNG o GIF desde el mismo selector, en 4:3, 1:1 y 3:4. El GIF incluye letras, fondos y todas las escenas del tráiler, con ritmo y bucle configurados; muestra progreso, permite cancelar y ofrece una vista previa antes de descargar. El PNG mantiene el mensaje completo en alta resolución.
 - Movimiento por letras (letra a letra, ola, rebote, remolino), palabras o líneas (aparición, impacto, desenfoque, fade in / out, deslizamiento y flotación) y modo estático; vista previa en vivo y visor.
 - Modo Tráiler: secuencia automática de hasta seis escenas y un cierre con el mensaje completo, con cambios de escala, color, entrada y fade out. Se activa desde el botón Tráiler de la vista previa o desde Movimiento. Los saltos de línea definen las escenas; sin ellos, se agrupan palabras o frases. Los controles numerados permiten revisar cada escena. Se comparte en el mismo enlace, funciona sin conexión y muestra el mensaje completo cuando se solicita movimiento reducido. El PNG conserva el mensaje completo y el diseño final.
 - Tres ritmos, reproducción única o en bucle, pausa y repetición manual. Cada estilo incluye su animación.
@@ -60,7 +60,7 @@ Máximo 280 caracteres Unicode, 12 líneas y 4096 caracteres de fragmento; la de
 
 Idea original: **[ojoven](https://github.com/ojoven)**, [Gzaas!](https://github.com/ojoven/gzaas). Gonzalo Ayuso colaboró en el proyecto original con la API PHP. Esta versión conserva la idea y renueva la interfaz y arquitectura. El crédito enlazado al proyecto original y a su autor aparece en la landing, el editor y el visor.
 
-Las doce fuentes se distribuyen mediante Fontsource bajo sus correspondientes licencias OFL, copiadas a `public/licenses/` e incluidas en la demo HTML. No necesitan una petición a Google Fonts en tiempo de ejecución. lz-string: licencia MIT. React: MIT. No se reutilizan marcas gráficas ni ficheros del repositorio original.
+Las doce fuentes se distribuyen mediante Fontsource bajo sus correspondientes licencias OFL, copiadas a `public/licenses/` e incluidas en la demo HTML. No necesitan una petición a Google Fonts en tiempo de ejecución. lz-string: licencia MIT. React: MIT. [gifenc](https://github.com/mattdesl/gifenc): MIT; se empaqueta localmente en un worker incluido, sin CDN ni servidor de conversión. No se reutilizan marcas gráficas ni ficheros del repositorio original.
 
 ## Copia de demostración en un solo HTML
 
@@ -73,7 +73,7 @@ Abre `gzaas-preview.html` en un navegador moderno. Incluye el código, CSS y fue
 
 ## Validación de esta entrega
 
-Build de producción y comprobación TypeScript correctos. Quince tests: diez del formato de URL, incluyendo todas las combinaciones de fuentes, fondos y efectos, animación, ritmo y repetición y compatibilidad con enlaces antiguos; cinco de segmentación, grafemas, secuencias, tiempos, cierre y bucles del tráiler. Revisión visual e interacción en Chrome en escritorio y móvil: colecciones, selector de fuentes, animación por letras y de fondos, pausa, repetición, visor, enlaces compartidos, créditos y movimiento reducido. La integración WebMCP no se ha validado en un navegador que la implemente.
+Build de producción y comprobación TypeScript correctos. Veinte tests: diez del formato de URL, incluyendo todas las combinaciones de fuentes, fondos y efectos, animación, ritmo y repetición y compatibilidad con enlaces antiguos; cinco de segmentación, grafemas, secuencias, tiempos, cierre y bucles del tráiler; cinco de proporciones, fotogramas, tiempos GIF, secuencias completas y exportación estática. Revisión visual e interacción en Chrome en escritorio y móvil: colecciones, selector de fuentes, animación por letras y de fondos, pausa, repetición, visor, enlaces compartidos, créditos y movimiento reducido. Exportación GIF comprobada sin conexión desde la demo HTML: fuentes, efectos, tráiler completo, bucle, cancelación y PNG; archivos GIF decodificados para verificar fotogramas, tiempos y proporciones. El diálogo cabe sin scroll en las nueve resoluciones de escritorio y móvil revisadas. La integración WebMCP no se ha validado en un navegador que la implemente.
 
 ## Licencia
 

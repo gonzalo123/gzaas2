@@ -44,10 +44,11 @@ export function backdropScene(s:Poster,w:number,h:number){
  return {gradients,shapes};
 }
 
-export function paintBackdrop(ctx:CanvasRenderingContext2D,s:Poster,w:number,h:number){
- const {gradients,shapes}=backdropScene(s,w,h);
- for(const shape of shapes){
-  ctx.save();ctx.globalAlpha=shape.opacity;
+export function paintBackdrop(ctx:CanvasRenderingContext2D,s:Poster,w:number,h:number,scene=backdropScene(s,w,h),sample?:(index:number)=>{matrix:DOMMatrixReadOnly;opacity:number}){
+ const {gradients,shapes}=scene;
+ for(const [index,shape] of shapes.entries()){
+  ctx.save();const motion=sample?.(index);ctx.globalAlpha=motion?.opacity??shape.opacity;
+  if(motion){const m=motion.matrix;ctx.translate(w/2,h/2);ctx.transform(m.a,m.b,m.c,m.d,m.e,m.f);ctx.translate(-w/2,-h/2);}
   if(shape.kind==='ellipse'){ctx.translate(shape.cx!,shape.cy!);ctx.scale(shape.rx!,shape.ry!);}
   const definition=gradients.find(g=>g.id===shape.fill);
   if(definition){

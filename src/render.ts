@@ -54,17 +54,25 @@ export function paint(canvas:HTMLCanvasElement,s:Poster,width:number,height:numb
  canvas.width=width;canvas.height=height;
  const ctx=canvas.getContext('2d');if(!ctx)return;
  paintBackdrop(ctx,s,width,height);
+ paintTexture(ctx,s,width,height);
+ const {fontSize,lines}=layoutText(ctx,s,width,height);
+ for(const line of lines)paintTextUnit(ctx,s,fontSize,line.text,line.x,line.y,s.align as CanvasTextAlign);
+}
+export function paintTexture(ctx:CanvasRenderingContext2D,s:Poster,width:number,height:number){
  const unit=Math.min(width,height);
  ctx.save();ctx.globalAlpha=.13;ctx.fillStyle=s.fg;ctx.strokeStyle=s.fg;ctx.lineWidth=Math.max(1,unit/900);
  const step=unit/18;
  if(s.pattern==='dots')for(let x=step/2;x<width;x+=step)for(let y=step/2;y<height;y+=step){ctx.beginPath();ctx.arc(x,y,Math.max(1,unit/600),0,Math.PI*2);ctx.fill();}
  if(s.pattern==='grid'||s.pattern==='lines'){ctx.beginPath();for(let y=0;y<height;y+=step*1.5){ctx.moveTo(0,y);ctx.lineTo(width,y);}if(s.pattern==='grid')for(let x=0;x<width;x+=step*1.5){ctx.moveTo(x,0);ctx.lineTo(x,height);}ctx.stroke();}
  ctx.restore();
- const {fontSize,lines}=layoutText(ctx,s,width,height);
- ctx.textAlign=s.align as CanvasTextAlign;ctx.textBaseline='alphabetic';ctx.fillStyle=s.fg;ctx.strokeStyle=s.fg;
+}
+export function paintTextUnit(ctx:CanvasRenderingContext2D,s:Poster,fontSize:number,text:string,x:number,y:number,align:CanvasTextAlign){
+ ctx.save();ctx.font=`${weight(s)} ${fontSize}px ${families[s.font]}`;
+ ctx.textAlign=align;ctx.textBaseline='alphabetic';ctx.fillStyle=s.fg;ctx.strokeStyle=s.fg;
  if(s.effect==='shadow'){ctx.shadowColor=s.fg+'55';ctx.shadowOffsetX=fontSize*.035;ctx.shadowOffsetY=fontSize*.045;}
  if(s.effect==='neon'){ctx.shadowColor=s.fg;ctx.shadowBlur=fontSize*.08;}
  ctx.lineWidth=Math.max(1,fontSize*.014);
- for(const line of lines){if(s.effect==='outline')ctx.strokeText(line.text,line.x,line.y);else{if(s.effect==='echo'){ctx.fillStyle=s.accent;for(let i=3;i>0;i--)ctx.fillText(line.text,line.x+i*fontSize*.022,line.y+i*fontSize*.022);ctx.fillStyle=s.fg;}ctx.fillText(line.text,line.x,line.y);}}
+ if(s.effect==='outline')ctx.strokeText(text,x,y);else{if(s.effect==='echo'){ctx.fillStyle=s.accent;for(let i=3;i>0;i--)ctx.fillText(text,x+i*fontSize*.022,y+i*fontSize*.022);ctx.fillStyle=s.fg;}ctx.fillText(text,x,y);}
+ ctx.restore();
 }
 export async function waitFonts(s:Poster){await document.fonts.load(`${weight(s)} 24px ${families[s.font]}`);await document.fonts.ready;}
