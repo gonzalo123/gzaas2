@@ -1,0 +1,7 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {DEFAULT,PRESETS,encodeState,decodeState,validateState} from '../src/state.mjs';
+test('share round-trip preserves Spanish, emoji, line breaks and every style',()=>{for(const {name,sample,...style} of PRESETS){const s={...DEFAULT,...style,text:'¡Qué alegría! 👩🏽‍💻\n日本語 + / # & = <script>alert(1)</script>',align:'right',size:67,animation:'float'};assert.deepEqual(decodeState(encodeState(s)),s);}});
+test('reject malformed, unknown-version and oversized links',()=>{for(const input of ['#v2=abc','#v1=xxx','#v1=%00','#v1='+'A'.repeat(5000),'#',''])assert.throws(()=>decodeState(input));});
+test('reject CSS/URL injection, unsupported fields, empty and excessive text',()=>{for(const patch of [{fg:'url(https://bad.example)'},{font:'evil'},{v:2},{text:''},{text:'x'.repeat(281)},{text:'x\n'.repeat(13)},{size:NaN},{pattern:'evil'},{animation:'evil'}])assert.throws(()=>validateState({...DEFAULT,...patch}));});
+test('max-length multilingual messages survive URL encoding',()=>{for(const text of ['a'.repeat(280),'漢'.repeat(280),'👋'.repeat(280)]){const state={...DEFAULT,text};const hash=encodeState(state);assert.ok(hash.length<=4096);assert.deepEqual(decodeState(hash),state);}});
+test('drops unknown fields instead of injecting them into app state',()=>{const s=validateState({...DEFAULT,evil:'https://example.com'});assert.deepEqual(s,DEFAULT);});

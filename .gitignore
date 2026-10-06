@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.sites-runtime/
+*.log
+.codegraph/
+.env
+.env.*
+!.env.example
+gzaas-preview.html
+.DS_Store
