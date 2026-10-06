@@ -6,7 +6,7 @@
 .trailer-progress{position:absolute;bottom:0;left:0;width:100%;height:3px;background:#ffffff40;mix-blend-mode:difference}
 .trailer-progress>div{height:100%;background:white;transform:scaleX(0);transform-origin:left}
 .viewer .trailer-navigation{top:auto;left:50%;bottom:88px;transform:translateX(-50%);transition:opacity .3s;opacity:0;pointer-events:none}
-.viewer.controls-visible .trailer-navigation,.viewer .trailer-navigation:focus-within{opacity:1;pointer-events:auto}
+.viewer.controls-visible .trailer-navigation,.viewer .trailer-navigation:has(:focus-visible){opacity:1;pointer-events:auto}
 .edit-app .trailer-shortcut{border:1px solid #d8ddcd;background:transparent;color:#4b5540;padding:5px 10px;border-radius:5px;font-size:11px;font-weight:700;line-height:1.3}
 .edit-app .trailer-shortcut:hover,.edit-app .trailer-shortcut.selected{background:#252b25;color:#d9f66f;border-color:#252b25}
 .edit-app .motion-group button,.edit-app .motion-group button:first-child,.edit-app .motion-group button:last-child{flex:1}
@@ -27,3 +27,6 @@
 .edit-app .trailer-storyboard+.motion-settings{margin-top:12px}
 @media(max-width:760px),(max-height:500px){.edit-app .trailer-storyboard+.motion-settings{margin-top:8px}}
 @media(prefers-reduced-motion:reduce){.trailer-scene{animation:none}}
+
+.viewer .trailer-progress{opacity:0;transition:opacity .3s}
+.viewer.controls-visible .trailer-progress{opacity:1}

@@ -34,7 +34,7 @@ function initial(){try{return location.hash ? {state:decodeState(location.hash.r
 const boot=initial();
 function App(){
  const[state,setState]=useState<Poster>(boot.state),[view,setView]=useState(boot.view),[error,setError]=useState(boot.error),[toast,setToast]=useState(''),[shareOpen,setShareOpen]=useState(false),[shareUrl,setShareUrl]=useState(''),[busy,setBusy]=useState(false),[ratio,setRatio]=useState('landscape');
- const[paused,setPaused]=useState(false),[replay,setReplay]=useState(0),[controlsVisible,setControlsVisible]=useState(true),[closing,setClosing]=useState(false);
+ const[paused,setPaused]=useState(false),[replay,setReplay]=useState(0),[controlsVisible,setControlsVisible]=useState(false),[closing,setClosing]=useState(false);
  const[landing,setLanding]=useState(!location.hash||!!boot.error),[draft,setDraft]=useState('');
  const[editorTab,setEditorTab]=useState<EditorTab>('message');
  const[exportOpen,setExportOpen]=useState(false);
@@ -56,12 +56,15 @@ function App(){
  },[draft,landing]);
  useEffect(()=>{const onHash=()=>{clearTimeout(exitTimer.current);setClosing(false);setShareOpen(false);setExportOpen(false);setPaused(false);try{if(location.hash){setState(decodeState(location.hash.replace('#edit:','#')));setView(!location.hash.startsWith('#edit:'));setLanding(false);}else{setView(false);setLanding(true);setDraft('');}setError('');}catch(e){setError((e as Error).message);setView(false);setLanding(true);}};addEventListener('hashchange',onHash);return()=>removeEventListener('hashchange',onHash);},[]);
  useEffect(()=>{const esc=(e:KeyboardEvent)=>{if(e.key==='Escape'&&!shareOpen&&!exportOpen)edit();};addEventListener('keydown',esc);return()=>removeEventListener('keydown',esc);},[view,shareOpen,exportOpen]);
- useEffect(()=>{
+ useLayoutEffect(()=>{
   if(!view)return;
   let timer:ReturnType<typeof setTimeout>;
   const reveal=()=>{setControlsVisible(true);clearTimeout(timer);timer=setTimeout(()=>setControlsVisible(false),2800);};
-  reveal();addEventListener('pointermove',reveal);addEventListener('pointerdown',reveal);addEventListener('keydown',reveal);
-  return()=>{clearTimeout(timer);removeEventListener('pointermove',reveal);removeEventListener('pointerdown',reveal);removeEventListener('keydown',reveal);};
+  const move=(e:PointerEvent)=>{if(e.pointerType!=='touch')reveal();};
+  const touch=(e:PointerEvent)=>{if(e.pointerType!=='mouse')reveal();};
+  const hide=()=>{clearTimeout(timer);setControlsVisible(false);};
+  hide();addEventListener('pointermove',move);addEventListener('pointerdown',touch);addEventListener('keydown',reveal);document.addEventListener('fullscreenchange',hide);
+  return()=>{clearTimeout(timer);removeEventListener('pointermove',move);removeEventListener('pointerdown',touch);removeEventListener('keydown',reveal);document.removeEventListener('fullscreenchange',hide);};
  },[view]);
  useEffect(()=>()=>{clearTimeout(toastTimer.current);clearTimeout(exitTimer.current);},[]);
  useEffect(()=>{
@@ -74,7 +77,7 @@ function App(){
  async function share(){try{const url=getUrl();setShareUrl(url);setShareOpen(true);}catch(e){setError((e as Error).message);}}
  async function download(){setBusy(true);try{await waitFonts(state);const canvas=document.createElement('canvas');const [w,h]=ratio==='square'?[1600,1600]:ratio==='portrait'?[1200,1600]:[1920,1440];paint(canvas,state,w,h);const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('No se pudo crear la imagen.')),'image/png'));const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='gzaas.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);notify('Tu imagen está lista.');}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
  function surprise(){const current=PRESETS.findIndex(p=>p.bg===state.bg);let idx;do{idx=Math.floor(Math.random()*PRESETS.length);}while(idx===current);const{name,sample,...style}=PRESETS[idx];patch(style);notify(name);}
- function fullScreen(){clearTimeout(exitTimer.current);setClosing(false);setPaused(false);setView(true);}
+ function fullScreen(){clearTimeout(exitTimer.current);setClosing(false);setPaused(false);setControlsVisible(false);setView(true);}
  function edit(){if(!view||closing)return;setClosing(true);exitTimer.current=setTimeout(()=>{setView(false);setClosing(false);if(document.fullscreenElement)void document.exitFullscreen();},matchMedia('(prefers-reduced-motion: reduce)').matches?0:320);}
  function createMessage(){try{const{name,sample,...style}=PRESETS[Math.floor(Math.random()*PRESETS.length)];setState(validateState({...DEFAULT,...style,text:draft}));setError('');setPaused(false);setView(false);setLanding(false);window.scrollTo(0,0);}catch(e){setError((e as Error).message);}}
  return <div className={landing?'app landing':view?`app viewer${controlsVisible?' controls-visible':''}${closing?' viewer-closing':''}`:'app edit-app'}>
