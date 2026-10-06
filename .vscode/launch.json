@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "gzaas2: desarrollo (sin navegador)",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "pnpm dev -- --strictPort",
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

@@ -34,26 +34,32 @@ Este proyecto se publica en **https://gonzalo123.github.io/gzaas2/** con cada pu
 
 `JSON → lz-string.compressToEncodedURIComponent → #v1=...`.
 
-El esquema incluye versión, texto, fuente, colores, textura, efecto, alineación, intensidad y animación. Cada enlace es una instantánea editable. La proporción del editor y de la exportación es una preferencia de presentación: al abrir el enlace, el cartel se adapta a la pantalla del destinatario.
+El esquema incluye versión, texto, fuente, colores, textura, efecto, alineación, intensidad, animación, ritmo, repetición, fondo, color de acento y movimiento del fondo. Cada enlace es una instantánea editable. Los enlaces v1 anteriores siguen funcionando: si no incluyen los campos nuevos, se abren con ritmo normal, una sola reproducción y el fondo liso original. La proporción del editor y de la exportación es una preferencia de presentación: al abrir el enlace, el cartel se adapta a la pantalla del destinatario.
 
 El payload **no está cifrado ni firmado**: cualquier persona con el enlace puede leerlo y crear una variante. No hay enlaces revocables, cambios remotos, galería compartida ni tarjetas sociales por mensaje. No se incrustan fotos ni fuentes en cada enlace. Preservar `v1`, los identificadores y los recursos tipográficos permite seguir abriendo enlaces antiguos.
 
-Máximo 280 caracteres Unicode, 12 líneas y 4096 caracteres de fragmento; la decodificación valida tamaño, formato y listas cerradas de opciones. El texto se dibuja en canvas, nunca se interpreta como HTML. La app respeta `prefers-reduced-motion` y ofrece controles etiquetados y texto alternativo para cada cartel. Los PNG son estáticos, aunque el visor use animaciones. Las fuentes y la distribución exacta de emojis pueden variar por plataforma.
+Máximo 280 caracteres Unicode, 12 líneas y 4096 caracteres de fragmento; la decodificación valida tamaño, formato y listas cerradas de opciones. El texto del editor y del visor se presenta con SVG y animaciones CSS por letras, palabras o líneas; los grafemas Unicode mantienen juntos los emojis y sus modificadores. La exportación usa canvas con el mismo cálculo de texto y escena de fondo. El mensaje nunca se interpreta como HTML. La app respeta `prefers-reduced-motion` y ofrece controles etiquetados y texto alternativo para cada cartel. Los PNG muestran una composición estática del diseño, aunque el visor use animaciones. Las fuentes y la distribución exacta de emojis pueden variar por plataforma.
 
 ## Funciones
 
-- Seis estilos, tres fuentes, colores, alineación, tamaño, textura, sombras y contorno.
+- Inicio minimalista: logo, un campo de texto y «gzaas it!». Enter abre el editor con el mensaje; Shift+Enter añade una línea. Las opciones de diseño y movimiento aparecen después.
+- Editor ajustado a la altura de la pantalla: vista previa siempre visible, controles en pestañas Texto / Estilos / Diseño / Fondos / Movimiento y acciones de compartir y descargar en la barra superior. Las pestañas se recorren con flechas, Home y End. En pantallas excepcionalmente pequeñas o con zoom, el panel de opciones permite desplazamiento sin mover la vista previa.
+- 24 estilos en cuatro colecciones de seis: Esenciales, Noche y neón, Pop y retro y Con carácter. Se recorren sin scroll.
+- Doce fuentes de Google Fonts incluidas localmente, con selector visual que muestra cada tipografía: Bebas Neue, DM Serif Display, DM Sans, Anton, Bungee, Bungee Shade, Monoton, Permanent Marker, Pacifico, Righteous, Space Grotesk y Abril Fatface.
+- Ocho fondos: liso, aurora, nubes, atardecer, rayos, constelación, ajedrez y ondas; colores base y acento editables y movimiento independiente del texto. Texturas opcionales, sombras, contorno, neón y eco 3D.
 - Diseño adaptable a móvil y escritorio, con vista de lectura a toda pantalla.
 - Enlace comprimido, portapapeles con alternativa manual y Web Share cuando existe.
 - Exportación PNG local en 4:3, 1:1 y 3:4.
-- Aparición suave y movimiento opcional en el visor.
+- Movimiento por letras (letra a letra, ola, rebote, remolino), palabras o líneas (aparición, impacto, desenfoque, fade in / out, deslizamiento y flotación) y modo estático; vista previa en vivo y visor.
+- Tres ritmos, reproducción única o en bucle, pausa y repetición manual. Cada estilo incluye su animación.
+- Entrada y salida del visor con transiciones; sus controles se desvanecen tras unos segundos y reaparecen al mover el ratón, tocar la pantalla o usar el teclado.
 - Integración WebMCP opcional por detección de disponibilidad para configurar texto; no comparte automáticamente.
 
 ## Créditos
 
-Idea original: **ojoven**, [Gzaas!](https://www.gzaas.com/). Gonzalo Ayuso colaboró en el proyecto original con la API PHP. Esta versión conserva la idea y renueva la interfaz y arquitectura.
+Idea original: **[ojoven](https://github.com/ojoven)**, [Gzaas!](https://github.com/ojoven/gzaas). Gonzalo Ayuso colaboró en el proyecto original con la API PHP. Esta versión conserva la idea y renueva la interfaz y arquitectura. El crédito enlazado al proyecto original y a su autor aparece en la landing, el editor y el visor.
 
-Fuentes: Bebas Neue, DM Sans y DM Serif Display distribuidas por Fontsource bajo sus correspondientes licencias OFL incluidas en las dependencias. lz-string: licencia MIT. React: MIT. No se reutilizan marcas gráficas ni ficheros del repositorio original.
+Las doce fuentes se distribuyen mediante Fontsource bajo sus correspondientes licencias OFL, copiadas a `public/licenses/` e incluidas en la demo HTML. No necesitan una petición a Google Fonts en tiempo de ejecución. lz-string: licencia MIT. React: MIT. No se reutilizan marcas gráficas ni ficheros del repositorio original.
 
 ## Copia de demostración en un solo HTML
 
@@ -66,7 +72,7 @@ Abre `gzaas-preview.html` en un navegador moderno. Incluye el código, CSS y fue
 
 ## Validación de esta entrega
 
-Build de producción y comprobación TypeScript correctos. Cinco tests del formato de URL: ida y vuelta Unicode/estilos, enlaces inválidos, restricciones de datos, longitud máxima y campos desconocidos. La revisión visual e interacción en navegador y la integración WebMCP no pudieron ejecutarse en este entorno; compruébalas antes de dar la versión por definitiva.
+Build de producción y comprobación TypeScript correctos. Diez tests del formato de URL, incluyendo todas las combinaciones de fuentes, fondos y efectos, animación, ritmo y repetición y compatibilidad con enlaces antiguos. Revisión visual e interacción en Chrome en escritorio y móvil: colecciones, selector de fuentes, animación por letras y de fondos, pausa, repetición, visor, enlaces compartidos, créditos y movimiento reducido. La integración WebMCP no se ha validado en un navegador que la implemente.
 
 ## Licencia
 
