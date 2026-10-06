@@ -56,15 +56,15 @@ dialog[open]{animation:dialog-enter .25s ease both}dialog[open]::backdrop{animat
 @media(prefers-reduced-motion:reduce){.motion-unit{opacity:1!important;transform:none!important;filter:none!important}.viewer-poster{clip-path:none!important}.motion-demo span{opacity:1!important;transform:none!important;filter:none!important}}
 
 /* Write first. The full editor opens only after the message is ready. */
-.landing{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:32px 24px;background:#fafaf9}
-.landing-content{width:min(700px,100%);max-width:none;padding:0;margin:0;transform:translateY(-7vh)}
+.landing{position:relative;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:32px 24px calc(32px + 14dvh);background:#fafaf9}
+.landing-content{width:min(700px,100%);max-width:none;padding:0;margin:0;transform:none}
 .landing-logo{color:#f26900;text-align:center;font-size:clamp(72px,11vw,104px);font-weight:800;font-style:italic;letter-spacing:-8px;line-height:1;margin:0}
 .landing-logo span{display:inline-block;margin-left:4px}
 .landing-tagline{text-align:center;font-size:15px;font-weight:500;color:#676b62;margin:12px 0 28px;letter-spacing:-.2px}
-.landing-form textarea{width:100%;min-height:70px;max-height:210px;resize:vertical;border:2px solid #f26900;border-radius:9px;background:transparent;padding:17px 19px;font-size:19px;line-height:1.4;font-weight:400;color:#30352d;transition:box-shadow .2s}
+.landing-form textarea{width:100%;min-height:70px;max-height:none;resize:none;overflow:hidden;border:2px solid #f26900;border-radius:9px;background:transparent;padding:17px 19px;font-size:19px;line-height:1.4;font-weight:400;color:#30352d;transition:box-shadow .2s}
 .landing-form textarea::placeholder{color:#92948d}.landing-form textarea:focus{outline:none;box-shadow:0 0 0 4px #f2690015}
 .landing-actions{display:flex;justify-content:flex-end;margin-top:12px}
 .landing-submit{background:#f26900;color:white;border-radius:7px;padding:9px 16px;font-weight:800;font-size:21px;font-style:italic;letter-spacing:-1px;line-height:1.2;min-height:42px}.landing-submit:hover:not(:disabled){background:#dd5900;box-shadow:0 3px 12px #f2690026}.landing-submit:disabled{opacity:.65}.landing-submit:focus-visible{outline-color:#f26900}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-@media(max-width:760px){.landing{padding:24px}.landing-content{transform:translateY(-6vh)}.landing-logo{font-size:82px;letter-spacing:-6px}.landing-tagline{font-size:14px;margin:11px 0 24px}.landing-form textarea{font-size:17px;min-height:84px;padding:15px}.landing-submit{font-size:20px}}
-@media(max-height:450px){.landing-content{transform:none}.landing-logo{font-size:64px}.landing-tagline{margin-bottom:18px}}
+@media(max-width:760px){.landing{padding:24px 24px calc(24px + 12dvh)}.landing-content{transform:none}.landing-logo{font-size:82px;letter-spacing:-6px}.landing-tagline{font-size:14px;margin:11px 0 24px}.landing-form textarea{font-size:17px;min-height:84px;padding:15px}.landing-submit{font-size:20px}}
+@media(max-height:450px){.landing{padding-bottom:48px}.landing-content{transform:none}.landing-logo{font-size:64px}.landing-tagline{margin-bottom:18px}}

@@ -1,10 +1,15 @@
 import {useId,useLayoutEffect,useRef,useState,type CSSProperties} from 'react';
 import {families,layoutText,waitFonts,type Poster} from './render';
 import {Backdrop} from './Backdrop';
+import {TrailerStage} from './TrailerStage';
 
 type Geometry = ReturnType<typeof layoutText> & {width:number;height:number};
 
-export function PosterStage({state,paused=false,replay=0,onError}:{state:Poster;paused?:boolean;replay?:number;onError?:(message:string)=>void}){
+export type StageProps={state:Poster;paused?:boolean;replay?:number;onError?:(message:string)=>void;onPlay?:()=>void};
+export function PosterStage(props:StageProps){
+ return props.state.animation==='trailer'?<TrailerStage key={`${JSON.stringify(props.state)}:${props.replay}`} {...props} SceneRenderer={PosterArtwork}/>:<PosterArtwork {...props}/>;
+}
+function PosterArtwork({state,paused=false,replay=0,onError}:StageProps){
  const ref=useRef<HTMLDivElement>(null),patternId=useId();
  const [geometry,setGeometry]=useState<Geometry>();
  useLayoutEffect(()=>{

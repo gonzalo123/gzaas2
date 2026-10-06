@@ -42,7 +42,7 @@ Máximo 280 caracteres Unicode, 12 líneas y 4096 caracteres de fragmento; la de
 
 ## Funciones
 
-- Inicio minimalista: logo, un campo de texto y «gzaas it!». Enter abre el editor con el mensaje; Shift+Enter añade una línea. Las opciones de diseño y movimiento aparecen después.
+- Inicio minimalista: logo, un campo de texto y «gzaas it!». Enter abre el editor con el mensaje y un estilo elegido al azar entre los 24 disponibles; Shift+Enter añade una línea. El campo crece y se encoge automáticamente con el texto, el pegado y el ancho de pantalla, sin scroll interior. Las opciones de diseño y movimiento aparecen después.
 - Editor ajustado a la altura de la pantalla: vista previa siempre visible, controles en pestañas Texto / Estilos / Diseño / Fondos / Movimiento y acciones de compartir y descargar en la barra superior. Las pestañas se recorren con flechas, Home y End. En pantallas excepcionalmente pequeñas o con zoom, el panel de opciones permite desplazamiento sin mover la vista previa.
 - 24 estilos en cuatro colecciones de seis: Esenciales, Noche y neón, Pop y retro y Con carácter. Se recorren sin scroll.
 - Doce fuentes de Google Fonts incluidas localmente, con selector visual que muestra cada tipografía: Bebas Neue, DM Serif Display, DM Sans, Anton, Bungee, Bungee Shade, Monoton, Permanent Marker, Pacifico, Righteous, Space Grotesk y Abril Fatface.
@@ -51,6 +51,7 @@ Máximo 280 caracteres Unicode, 12 líneas y 4096 caracteres de fragmento; la de
 - Enlace comprimido, portapapeles con alternativa manual y Web Share cuando existe.
 - Exportación PNG local en 4:3, 1:1 y 3:4.
 - Movimiento por letras (letra a letra, ola, rebote, remolino), palabras o líneas (aparición, impacto, desenfoque, fade in / out, deslizamiento y flotación) y modo estático; vista previa en vivo y visor.
+- Modo Tráiler: secuencia automática de hasta seis escenas y un cierre con el mensaje completo, con cambios de escala, color, entrada y fade out. Se activa desde el botón Tráiler de la vista previa o desde Movimiento. Los saltos de línea definen las escenas; sin ellos, se agrupan palabras o frases. Los controles numerados permiten revisar cada escena. Se comparte en el mismo enlace, funciona sin conexión y muestra el mensaje completo cuando se solicita movimiento reducido. El PNG conserva el mensaje completo y el diseño final.
 - Tres ritmos, reproducción única o en bucle, pausa y repetición manual. Cada estilo incluye su animación.
 - Entrada y salida del visor con transiciones; sus controles se desvanecen tras unos segundos y reaparecen al mover el ratón, tocar la pantalla o usar el teclado.
 - Integración WebMCP opcional por detección de disponibilidad para configurar texto; no comparte automáticamente.
@@ -72,7 +73,7 @@ Abre `gzaas-preview.html` en un navegador moderno. Incluye el código, CSS y fue
 
 ## Validación de esta entrega
 
-Build de producción y comprobación TypeScript correctos. Diez tests del formato de URL, incluyendo todas las combinaciones de fuentes, fondos y efectos, animación, ritmo y repetición y compatibilidad con enlaces antiguos. Revisión visual e interacción en Chrome en escritorio y móvil: colecciones, selector de fuentes, animación por letras y de fondos, pausa, repetición, visor, enlaces compartidos, créditos y movimiento reducido. La integración WebMCP no se ha validado en un navegador que la implemente.
+Build de producción y comprobación TypeScript correctos. Quince tests: diez del formato de URL, incluyendo todas las combinaciones de fuentes, fondos y efectos, animación, ritmo y repetición y compatibilidad con enlaces antiguos; cinco de segmentación, grafemas, secuencias, tiempos, cierre y bucles del tráiler. Revisión visual e interacción en Chrome en escritorio y móvil: colecciones, selector de fuentes, animación por letras y de fondos, pausa, repetición, visor, enlaces compartidos, créditos y movimiento reducido. La integración WebMCP no se ha validado en un navegador que la implemente.
 
 ## Licencia
 

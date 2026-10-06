@@ -21,6 +21,7 @@ export const BACKDROPS = [
 ];
 export const COLLECTIONS = ['Esenciales','Noche y neón','Pop y retro','Con carácter'];
 export const ANIMATIONS = [
+ {id:'trailer',name:'Modo Tráiler',description:'Tu mensaje, convertido en una secuencia de escenas.',mark:'▶'},
  {id:'letters',name:'Letra a letra',description:'Un mensaje que se construye letra a letra.',mark:'Ab',group:'letters'},
  {id:'wave',name:'Ola',description:'Una ola recorre cada letra.',mark:'∿',group:'letters'},
  {id:'bounce',name:'Rebote',description:'Las letras aterrizan con energía.',mark:'↟',group:'letters'},
