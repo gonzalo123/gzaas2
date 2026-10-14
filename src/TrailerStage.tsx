@@ -1,3 +1,4 @@
+import {isParticle} from './particles.mjs';
 import {useEffect,useMemo,useRef,useState,type ComponentType,type CSSProperties} from 'react';
 import {buildTrailer,trailerPosition} from './trailer.mjs';
 import {waitFonts} from './render';
@@ -9,7 +10,8 @@ export function TrailerStage({state,paused=false,onError,onPlay,SceneRenderer}:{
  const [reduced,setReduced]=useState(()=>matchMedia('(prefers-reduced-motion: reduce)').matches);
  const [hidden,setHidden]=useState(document.hidden);
  const elapsed=useRef(0),current=useRef(frame),shell=useRef<HTMLDivElement>(null),progress=useRef<HTMLDivElement>(null);
- const original=useMemo(()=>({...state,animation:'none',repeat:false,backdropMotion:false}),[state]);
+ const particleClock=useMemo(()=>()=>trailerPosition(plan,elapsed.current,state.repeat).localTime,[plan,state.repeat]);
+ const original=useMemo(()=>{const final=plan.scenes.at(-1)!.state;return {...final,animation:isParticle(final.animation)?final.animation:'none',repeat:false,backdropMotion:false};},[plan]);
  useEffect(()=>{
   const media=matchMedia('(prefers-reduced-motion: reduce)');
   const changed=()=>{elapsed.current=0;current.current={index:0,cycle:0,seek:current.current.seek+1};setFrame(current.current);setReduced(media.matches);};
@@ -48,7 +50,7 @@ export function TrailerStage({state,paused=false,onError,onPlay,SceneRenderer}:{
  return <div className="trailer-stage" style={{background:state.bg,'--play-state':paused||hidden||!ready?'paused':'running'} as CSSProperties} data-scene={frame.index} data-cycle={frame.cycle}>
   <div role="img" aria-label={state.text} className="sr-only"/>
   <div className="trailer-scene" ref={shell} aria-hidden="true" key={`${frame.index}:${frame.cycle}:${frame.seek}`}>
-   <SceneRenderer state={scene.state} paused={paused||hidden||!ready} onError={onError}/>
+   <SceneRenderer state={scene.state} particleDuration={scene.duration} particleClock={particleClock} paused={paused||hidden||!ready} onError={onError}/>
   </div>
   <div className="trailer-navigation" role="group" aria-label="Escenas del tráiler">{plan.scenes.map((s,i)=><button key={i} className={frame.index===i?'active':''} aria-pressed={frame.index===i} aria-label={s.final?'Ver mensaje completo':`Ver escena ${i+1}: ${s.state.text}`} title={s.final?'Mensaje completo':s.state.text} onClick={()=>seek(i)}>{s.final?'✦':i+1}</button>)}</div>
   <div className="trailer-progress" aria-hidden="true"><div ref={progress}/></div>

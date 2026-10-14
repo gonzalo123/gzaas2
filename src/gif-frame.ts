@@ -1,10 +1,10 @@
-import {isParticle,particleTempo} from './particles.mjs';
+import {isParticle,particlePlaybackTime} from './particles.mjs';
 import {drawParticles} from './particle-canvas';
 import {createPosterParticles,layoutText,paintTexture,paintTextUnit,type Poster} from './render';
 import {backdropScene,paintBackdrop} from './background';
 import {motionSampler,textTiming} from './motion-sampler';
 
-export function gifFrameRenderer(canvas:HTMLCanvasElement,state:Poster,width:number,height:number){
+export function gifFrameRenderer(canvas:HTMLCanvasElement,state:Poster,width:number,height:number,particleDuration?:number){
  canvas.width=width;canvas.height=height;
  const ctx=canvas.getContext('2d',{willReadFrequently:true});if(!ctx)throw Error('El navegador no puede crear la imagen.');
  const geometry=layoutText(ctx,state,width,height),unit=Math.min(width,height),sampler=motionSampler();
@@ -25,7 +25,7 @@ export function gifFrameRenderer(canvas:HTMLCanvasElement,state:Poster,width:num
   draw(time:number){
    ctx.clearRect(0,0,width,height);
    paintBackdrop(ctx,state,width,height,background,i=>shapes[i](time));paintTexture(ctx,state,width,height);
-   if(field)drawParticles(ctx,field,state,width,height,time/particleTempo(state.pace));
+   if(field)drawParticles(ctx,field,state,width,height,particlePlaybackTime(time,state.pace,particleDuration));
    for(const part of parts){
     const sample=part.sample(time),m=sample.matrix;
     if(sample.opacity<=0)continue;

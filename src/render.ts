@@ -1,8 +1,9 @@
+import {buildTrailer} from './trailer.mjs';
 import {FONTS} from './state.mjs';
 import {createParticles,sampleTargets,particleSeed,isParticle} from './particles.mjs';
 import {drawParticles,type ParticleField} from './particle-canvas';
 import {paintBackdrop} from './background';
-export type Poster = {v:number;text:string;font:string;fg:string;bg:string;pattern:string;effect:string;align:string;size:number;animation:string;pace:string;repeat:boolean;backdrop:string;accent:string;backdropMotion:boolean;particleDensity:number;particleInteraction:boolean};
+export type Poster = {v:number;text:string;font:string;fg:string;bg:string;pattern:string;effect:string;align:string;size:number;animation:string;pace:string;repeat:boolean;backdrop:string;accent:string;backdropMotion:boolean;trailerMix:boolean;trailerSeed:number;trailerParticles:boolean;particleDensity:number;particleInteraction:boolean};
 export const families:Record<string,string> = Object.fromEntries(FONTS.map(f=>[f.id,`"${f.family}", ${f.id==='serif'||f.id==='abril'?'serif':'sans-serif'}`]));
 export const fontWeight = (font:string) => FONTS.find(f=>f.id===font)?.weight??400;
 const weight = (s:Poster) => fontWeight(s.font);
@@ -53,6 +54,7 @@ export function layoutText(ctx:CanvasRenderingContext2D,s:Poster,width:number,he
  })};
 }
 export function paint(canvas:HTMLCanvasElement,s:Poster,width:number,height:number){
+ if(s.animation==='trailer')s=buildTrailer(s).scenes.at(-1)!.state;
  canvas.width=width;canvas.height=height;
  const ctx=canvas.getContext('2d');if(!ctx)return;
  paintBackdrop(ctx,s,width,height);

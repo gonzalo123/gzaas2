@@ -30,3 +30,15 @@
 
 .viewer .trailer-progress{opacity:0;transition:opacity .3s}
 .viewer.controls-visible .trailer-progress{opacity:1}
+.trailer-style{margin-bottom:12px}
+.edit-app .trailer-style button{flex:1}
+@media(max-width:760px){
+ .edit-app .trailer-style{margin-bottom:8px}
+ .edit-app .panel-motion:has(.trailer-style) .particle-settings .field-label{margin-top:10px;margin-bottom:4px}
+ .edit-app .panel-motion:has(.trailer-style) .particle-settings .loop-control{margin-top:6px}
+ .edit-app .panel-motion:has(.trailer-style) .particle-hint{margin-top:4px;font-size:10px}
+ .edit-app .panel-motion:has(.trailer-style) .motion-settings{padding-top:8px}
+}
+.trailer-shuffle{display:block;width:100%;padding:8px 12px;margin:-4px 0 10px;border:1px solid #d8ddcd;border-radius:6px;background:#f0f4e7;color:#344529;font-size:12px;font-weight:600}
+.trailer-shuffle:hover{background:#e4edcf}
+.trailer-beats>div>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

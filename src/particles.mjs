@@ -3,6 +3,9 @@ export const PARTICLE_DURATION=7000;
 export const PARTICLE_LIMIT=6000;
 export const isParticle=(animation)=>['particle-assemble','particle-explode','particle-vortex'].includes(animation);
 export const particleTempo=(pace)=>pace==='slow'?1.45:pace==='fast'?.7:1;
+// Trailer scenes compress the same full trajectory into their reading time.
+/** @param {number} time @param {string} pace @param {number} [duration] */
+export const particlePlaybackTime=(time,pace,duration)=>time*PARTICLE_DURATION/(duration??PARTICLE_DURATION*particleTempo(pace));
 export function particleSeed(text){let h=2166136261;for(const c of text){h^=c.codePointAt(0);h=Math.imul(h,16777619);}return h>>>0;}
 export function seededRandom(seed){return()=>{seed=(seed+0x6D2B79F5)|0;let t=Math.imul(seed^(seed>>>15),1|seed);t^=t+Math.imul(t^(t>>>7),61|t);return((t^(t>>>14))>>>0)/4294967296;};}
 

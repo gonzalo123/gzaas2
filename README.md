@@ -71,11 +71,25 @@ en **Ver en grande**, sin capturar los gestos de desplazamiento del editor.
 
 Los tres modos conservan fuente, alineación, tamaño, colores, fondo y textura.
 Usan la silueta rellena de la fuente con su propio halo; Sombra, Contorno, Neón y
-Eco 3D siguen disponibles al volver a una animación convencional. Tráiler sigue
-siendo un modo independiente: sus escenas mantienen las animaciones originales.
+Eco 3D siguen disponibles al volver a una animación convencional. En **Movimiento → Tráiler** puedes elegir **Clásico**, **Partículas** o **Mezcla**.
+Al activar Tráiler desde un efecto de partículas se conserva ese estilo; el
+botón de la vista previa también permite volver a las partículas. El tráiler
+alterna ensamblado, vórtice y explosión, y cierra formando el mensaje completo
+con los colores originales. Cada efecto se ajusta al tiempo de su escena, con
+una pausa de lectura antes del corte. Densidad y repulsión siguen disponibles.
+El visor comparte el reloj del tráiler y el GIF usa las mismas duraciones;
+PNG y movimiento reducido muestran el cierre completo de partículas.
+**Mezcla** alterna escenas de letras y partículas y elige sus animaciones con
+una semilla reproducible. **Otra mezcla** cambia la combinación; replay y el
+bucle mantienen la elegida. El storyboard muestra el efecto de cada escena y
+el enlace conserva la misma secuencia, también para GIF, PNG y movimiento
+reducido. Incluso un mensaje de una palabra incluye ambos estilos. Los colores
+y la fuente elegidos se mantienen; el cierre siempre muestra el mensaje completo.
+Los enlaces anteriores conservan su coreografía clásica o de partículas.
 
-`particleDensity` (1–3, por defecto 2) y `particleInteraction` (booleano, por
-defecto true) viajan en el mismo enlace `#v1=`. Los enlaces anteriores conservan
+`particleDensity` (1–3, por defecto 2), `particleInteraction` (booleano, por
+defecto true), `trailerParticles` y `trailerMix` (booleanos, por defecto false)
+y `trailerSeed` (entero de 0 a 4294967295, por defecto 0) viajan en el mismo enlace `#v1=`. Los enlaces anteriores conservan
 su animación y reciben estos valores sin cambiar su apariencia. No se añade
 ninguna dependencia, servicio, almacenamiento ni petición externa.
 
@@ -98,10 +112,11 @@ El movimiento del fondo sigue su propio ciclo, como en las demás animaciones.
 Las diferencias tipográficas entre plataformas (especialmente emojis) también
 pueden modificar la máscara. La repulsión del usuario no se graba en el GIF.
 
-Validación de partículas: **32 tests** (`npm test`), TypeScript y build
+Validación de partículas y tráiler: **39 tests** (`npm test`), TypeScript y build
 (`npm run build`). Los nueve tests nuevos cubren muestreo y trazos finos,
 semillas, límites, reproducción por tiempo, convergencia, continuidad de bucles,
-repulsión y recuperación, validación y enlaces antiguos, y tiempos de GIF.
+repulsión y recuperación, validación y enlaces antiguos, y tiempos de GIF. Siete tests adicionales verifican la coreografía y mezcla del tráiler,
+la compatibilidad de enlaces y su sincronización con la exportación.
 Comprobación en Chromium: escritorio, móvil emulado de 390 × 844 y 320 × 640,
 las doce fuentes, texto largo/multilínea, pausa/replay, movimiento reducido,
 igualdad PNG/fotograma final, exportación y cancelación. La copia creada con
@@ -109,6 +124,12 @@ igualdad PNG/fotograma final, exportación y cancelación. La copia creada con
 ni peticiones HTTP. Los GIF de prueba a ritmo rápido tienen 59 fotogramas y
 4,9 segundos, con movimiento real y bandera de bucle correcta. La prueba móvil
 es emulación; queda pendiente medir consumo en teléfonos físicos de gama baja.
+El tráiler de partículas también se comprobó con pausa, replay, salto de escena,
+reapertura del enlace y movimiento reducido: cuatro escenas y 133 fotogramas
+distintos en 11,06 segundos a ritmo rápido; PNG idéntico al cierre formado.
+La mezcla se comprobó con ambos tipos de cierre, cambio de combinación, replay,
+reapertura del enlace y HTML sin conexión. El GIF mixto de prueba contiene
+115 fotogramas (80 distintos) en 9,58 segundos.
 
 ## Créditos
 
@@ -127,7 +148,7 @@ Abre `gzaas-preview.html` en un navegador moderno. Incluye el código, CSS y fue
 
 ## Validación de esta entrega
 
-Build de producción y comprobación TypeScript correctos. Treinta y dos tests: nueve de partículas, tres de archivos compartidos, enlaces públicos y compatibilidad; diez del formato de URL, incluyendo todas las combinaciones de fuentes, fondos y efectos, animación, ritmo y repetición y compatibilidad con enlaces antiguos; cinco de segmentación, grafemas, secuencias, tiempos, cierre y bucles del tráiler; cinco de proporciones, fotogramas, tiempos GIF, secuencias completas y exportación estática. Revisión visual e interacción en Chrome en escritorio y móvil: colecciones, selector de fuentes, animación por letras y de fondos, pausa, repetición, visor, enlaces compartidos, créditos y movimiento reducido. Exportación GIF comprobada sin conexión desde la demo HTML: fuentes, efectos, tráiler completo, bucle, cancelación y PNG; archivos GIF decodificados para verificar fotogramas, tiempos y proporciones. El diálogo cabe sin scroll en las nueve resoluciones de escritorio y móvil revisadas. Compartir PNG y GIF con enlace comprobado con un menú nativo simulado, incluyendo activación del usuario, cancelación y descarga alternativa; no se ha enviado a WhatsApp. Metadatos sociales estáticos e imagen PNG de 1200 × 630 comprobados en el build; la tarjeta en apps de terceros se comprobará tras publicar. La integración WebMCP no se ha validado en un navegador que la implemente.
+Build de producción y comprobación TypeScript correctos. Treinta y nueve tests: nueve de partículas, siete de su integración y mezcla en tráiler, tres de archivos compartidos, enlaces públicos y compatibilidad; diez del formato de URL, incluyendo todas las combinaciones de fuentes, fondos y efectos, animación, ritmo y repetición y compatibilidad con enlaces antiguos; cinco de segmentación, grafemas, secuencias, tiempos, cierre y bucles del tráiler; cinco de proporciones, fotogramas, tiempos GIF, secuencias completas y exportación estática. Revisión visual e interacción en Chrome en escritorio y móvil: colecciones, selector de fuentes, animación por letras y de fondos, pausa, repetición, visor, enlaces compartidos, créditos y movimiento reducido. Exportación GIF comprobada sin conexión desde la demo HTML: fuentes, efectos, tráiler completo, bucle, cancelación y PNG; archivos GIF decodificados para verificar fotogramas, tiempos y proporciones. El diálogo cabe sin scroll en las nueve resoluciones de escritorio y móvil revisadas. Compartir PNG y GIF con enlace comprobado con un menú nativo simulado, incluyendo activación del usuario, cancelación y descarga alternativa; no se ha enviado a WhatsApp. Metadatos sociales estáticos e imagen PNG de 1200 × 630 comprobados en el build; la tarjeta en apps de terceros se comprobará tras publicar. La integración WebMCP no se ha validado en un navegador que la implemente.
 
 ## Licencia
 

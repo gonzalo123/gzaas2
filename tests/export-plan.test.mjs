@@ -40,3 +40,32 @@ test('single playback waits for all staggered letters before holding the final f
   assert.equal(plan.sceneAt(plan.frames.at(-1).time).state.repeat,false);
  }
 });
+
+test('particle trailer GIFs use the scene duration and preserve the complete formed ending',()=>{
+ for(const pace of ['normal','slow','fast'])for(const repeat of [true,false]){
+  const state={...DEFAULT,animation:'trailer',trailerParticles:true,text:'UNO\nDOS\nTRES',pace,repeat};
+  const trailer=buildTrailer(state),plan=exportPlan(state);
+  assert.deepEqual([...new Set(plan.frames.map(f=>plan.sceneAt(f.time).index))],[0,1,2,3]);
+  for(const scene of trailer.scenes){
+   const sampled=plan.sceneAt(scene.start+scene.duration*.5);
+   assert.equal(sampled.particleDuration,scene.duration);
+   assert.ok(Math.abs(sampled.time-scene.duration*.5)<.001);
+  }
+  if(!repeat){const final=plan.sceneAt(plan.frames.at(-1).time);assert.equal(final.state.text,state.text);assert.equal(final.state.animation,'particle-assemble');assert.equal(final.opacity,1);}
+ }
+});
+
+test('mixed GIF scenes keep renderer timing and the selected final style at every pace',async()=>{
+ const {isParticle}=await import('../src/particles.mjs');
+ for(const trailerSeed of [0,1,9])for(const pace of ['slow','normal','fast']){
+  const state={...DEFAULT,animation:'trailer',trailerMix:true,trailerSeed,text:'UNO\nDOS\nTRES',pace,repeat:false};
+  const trailer=buildTrailer(state),plan=exportPlan(state);
+  for(const scene of trailer.scenes){
+   const sampled=plan.sceneAt(scene.start+scene.duration*.5);
+   assert.equal(sampled.state.animation,scene.state.animation);
+   assert.equal(sampled.particleDuration,isParticle(scene.state.animation)?scene.duration:undefined);
+  }
+  const end=plan.sceneAt(plan.frames.at(-1).time);
+  assert.equal(end.state.animation,trailer.scenes.at(-1).state.animation);assert.equal(end.opacity,1);
+ }
+});

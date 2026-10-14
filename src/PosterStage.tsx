@@ -7,11 +7,11 @@ import {TrailerStage} from './TrailerStage';
 
 type Geometry = ReturnType<typeof layoutText> & {width:number;height:number};
 
-export type StageProps={state:Poster;paused?:boolean;replay?:number;onError?:(message:string)=>void;onPlay?:()=>void};
+export type StageProps={state:Poster;paused?:boolean;replay?:number;particleDuration?:number;particleClock?:()=>number;onError?:(message:string)=>void;onPlay?:()=>void};
 export function PosterStage(props:StageProps){
  return props.state.animation==='trailer'?<TrailerStage key={`${JSON.stringify(props.state)}:${props.replay}`} {...props} SceneRenderer={PosterArtwork}/>:<PosterArtwork {...props}/>;
 }
-function PosterArtwork({state,paused=false,replay=0,onError}:StageProps){
+function PosterArtwork({state,paused=false,replay=0,onError,particleDuration,particleClock}:StageProps){
  const ref=useRef<HTMLDivElement>(null),patternId=useId();
  const [geometry,setGeometry]=useState<Geometry>();
  useLayoutEffect(()=>{
@@ -54,6 +54,6 @@ function PosterArtwork({state,paused=false,replay=0,onError}:StageProps){
     </g>)}
    </g>}
   </svg>}
-  {geometry&&isParticle(state.animation)&&<ParticleStage state={state} width={geometry.width} height={geometry.height} paused={paused} replay={replay} onError={onError}/>}
+  {geometry&&isParticle(state.animation)&&<ParticleStage state={state} width={geometry.width} height={geometry.height} particleDuration={particleDuration} particleClock={particleClock} paused={paused} replay={replay} onError={onError}/>}
  </div>;
 }

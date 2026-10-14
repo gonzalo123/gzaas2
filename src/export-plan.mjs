@@ -18,8 +18,8 @@ export function exportPlan(state) {
   return {time:i===count-1&&!state.repeat?total:time,delay:next-time};
  });
  return {frames,totalDuration:total,sceneAt(time){
-  if(!trailer)return {state,time,index:0,opacity:1,scale:1};
+  if(!trailer)return {state,time,index:0,opacity:1,scale:1,particleDuration:undefined};
   const position=trailerPosition(trailer,Math.min(time,trailer.totalDuration),false),scene=trailer.scenes[position.index];
-  return {state:scene.state,time:position.localTime,index:position.index,opacity:scene.final&&!state.repeat?1:Math.min(1,(scene.duration-position.localTime)/220),scale:1+.035*Math.max(0,1-position.localTime/180)};
+  return {particleDuration:isParticle(scene.state.animation)?scene.duration:undefined,state:scene.state,time:position.localTime,index:position.index,opacity:scene.final&&!state.repeat?1:Math.min(1,(scene.duration-position.localTime)/220),scale:1+.035*Math.max(0,1-position.localTime/180)};
  }};
 }

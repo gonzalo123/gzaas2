@@ -25,7 +25,7 @@ export async function exportGif(state:Poster,ratio:string,signal:AbortSignal,onP
   await send({type:'init',width,height,repeat:state.repeat});
   for(const [i,frame] of plan.frames.entries()){
    signal.throwIfAborted();const scene=plan.sceneAt(frame.time);
-   if(scene.index!==sceneIndex){renderer?.dispose();renderer=gifFrameRenderer(sceneCanvas,scene.state,width,height);sceneIndex=scene.index;}
+   if(scene.index!==sceneIndex){renderer?.dispose();renderer=gifFrameRenderer(sceneCanvas,scene.state,width,height,scene.particleDuration);sceneIndex=scene.index;}
    renderer!.draw(scene.time);
    ctx.fillStyle=state.bg;ctx.fillRect(0,0,width,height);ctx.save();ctx.globalAlpha=scene.opacity;
    ctx.translate(width/2,height/2);ctx.scale(scene.scale,scene.scale);ctx.drawImage(sceneCanvas,-width/2,-height/2);ctx.restore();

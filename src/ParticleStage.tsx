@@ -1,9 +1,9 @@
 import {useLayoutEffect,useRef} from 'react';
 import {createPosterParticles,waitFonts,type Poster} from './render';
 import {drawParticles,type ParticleField} from './particle-canvas';
-import {sampleParticles,stepMagnet,particleTempo,PARTICLE_DURATION} from './particles.mjs';
+import {sampleParticles,stepMagnet,particlePlaybackTime,particleTempo,PARTICLE_DURATION} from './particles.mjs';
 
-export function ParticleStage({state,width,height,paused,replay,onError}:{state:Poster;width:number;height:number;paused:boolean;replay:number;onError?:(message:string)=>void}){
+export function ParticleStage({state,width,height,paused,replay,onError,particleDuration,particleClock}:{state:Poster;width:number;height:number;paused:boolean;replay:number;particleDuration?:number;particleClock?:()=>number;onError?:(message:string)=>void}){
  const canvas=useRef<HTMLCanvasElement>(null),pausedRef=useRef(paused),refresh=useRef<()=>void>(()=>{});
  pausedRef.current=paused;
  useLayoutEffect(()=>{
@@ -14,11 +14,12 @@ export function ParticleStage({state,width,height,paused,replay,onError}:{state:
   const media=matchMedia('(prefers-reduced-motion: reduce)');
   let alive=true,field:ParticleField|undefined,request=0,last=0,elapsed=0,moving=false,pointerDirty=false;
   let pointer:{x:number;y:number}|null=null;
-  const duration=PARTICLE_DURATION*particleTempo(state.pace);
+  const duration=particleDuration??PARTICLE_DURATION*particleTempo(state.pace);
+  const animationTime=()=>particlePlaybackTime(elapsed,state.pace,duration);
   const render=()=>{
    if(!field)return;
    ctx.clearRect(0,0,element.width,element.height);
-   drawParticles(ctx,field,state,element.width,element.height,elapsed/particleTempo(state.pace),media.matches,false);
+   drawParticles(ctx,field,state,element.width,element.height,animationTime(),media.matches,false);
   };
   const needsFrame=()=>!pausedRef.current&&!document.hidden&&!media.matches&&!!field&&(state.repeat||elapsed<duration||moving||pointerDirty);
   const tick=(now:number)=>{
@@ -26,8 +27,8 @@ export function ParticleStage({state,width,height,paused,replay,onError}:{state:
    // Render at 30fps; a suspended tab cannot advance or destabilize the spring.
    if(last&&now-last<1000/30-1){request=requestAnimationFrame(tick);return;}
    const dt=last?Math.min((now-last)/1000,.05):0;last=now;
-   elapsed+=dt*1000;
-   sampleParticles(field!.particles,state.animation,elapsed/particleTempo(state.pace),field!.width,field!.height,state.repeat);
+   elapsed=particleClock?particleClock():elapsed+dt*1000;
+   sampleParticles(field!.particles,state.animation,animationTime(),field!.width,field!.height,state.repeat);
    pointerDirty=false;
    moving=stepMagnet(field!.particles,pointer,dt||1/30,Math.min(field!.width,field!.height)*.15);
    render();if(needsFrame())request=requestAnimationFrame(tick);
@@ -56,7 +57,8 @@ export function ParticleStage({state,width,height,paused,replay,onError}:{state:
   waitFonts(state).then(()=>{
    if(!alive)return;
    field=createPosterParticles(state,width,height);
-   sampleParticles(field.particles,state.animation,0,field.width,field.height,state.repeat,media.matches);render();update();
+   elapsed=particleClock?.()??0;
+   sampleParticles(field.particles,state.animation,animationTime(),field.width,field.height,state.repeat,media.matches);render();update();
   }).catch(()=>{if(alive)onError?.('No se pudieron dibujar las partículas. Prueba otra tipografía o recarga.');});
   return()=>{
    alive=false;cancelAnimationFrame(request);refresh.current=()=>{};
@@ -64,7 +66,7 @@ export function ParticleStage({state,width,height,paused,replay,onError}:{state:
    element.removeEventListener('pointerleave',leave);element.removeEventListener('pointerup',leave);element.removeEventListener('pointercancel',leave);
    media.removeEventListener('change',update);document.removeEventListener('visibilitychange',visibility);
   };
- },[state,width,height,replay,onError]);
+ },[state,width,height,replay,onError,particleDuration,particleClock]);
  useLayoutEffect(()=>refresh.current(),[paused]);
  return <canvas ref={canvas} className="particle-canvas" aria-hidden="true"/>;
 }

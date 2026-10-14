@@ -4,7 +4,7 @@ import {ANIMATIONS,BACKDROPS,COLLECTIONS,MAX_TEXT,PRESETS} from './state.mjs';
 import {families,fontWeight,type Poster} from './render';
 import {FontPicker} from './FontPicker';
 import {Backdrop} from './Backdrop';
-import {trailerBeats} from './trailer.mjs';
+import {buildTrailer} from './trailer.mjs';
 
 const motionType=(animation:string)=>isParticle(animation)?'particles':animation==='trailer'?'trailer':['letters','wave','bounce','orbit'].includes(animation)?'letters':'scene';
 
@@ -12,6 +12,9 @@ export const EDITOR_TABS = [{id:'message',label:'Texto'},{id:'styles',label:'Est
 export type EditorTab = typeof EDITOR_TABS[number]['id'];
 
 export function EditorPanel({state,patch,tab,onTab}:{state:Poster;patch:(p:Partial<Poster>)=>void;tab:EditorTab;onTab:(tab:EditorTab)=>void}){
+ const usesParticles=isParticle(state.animation)||(state.animation==='trailer'&&state.trailerParticles&&!state.trailerMix);
+ const trailerStyle=state.trailerMix?'mix':state.trailerParticles?'particles':'classic';
+ const trailer=state.animation==='trailer'?buildTrailer(state):null;
  const [collection,setCollection]=useState(0),[motionGroup,setMotionGroup]=useState(motionType(state.animation));
  useEffect(()=>{setMotionGroup(motionType(state.animation));},[state.animation]);
  useEffect(()=>{const index=PRESETS.findIndex(p=>['font','fg','bg','backdrop','effect','animation'].every(k=>state[k as keyof Poster]===p[k as keyof typeof p]));if(index>=0)setCollection(Math.floor(index/6));},[state.font,state.fg,state.bg,state.backdrop,state.effect,state.animation]);
@@ -43,8 +46,8 @@ export function EditorPanel({state,patch,tab,onTab}:{state:Poster;patch:(p:Parti
    </>}
    {tab==='design'&&<>
     <div className="field-label"><label htmlFor="font">Tipografía</label></div><FontPicker font={state.font} onChange={font=>patch({font})}/>
-    <div className="design-detail-row"><div><div className="field-label"><label htmlFor="foreground">Color del texto</label></div><div className="color-input"><input id="foreground" type="color" value={state.fg} onChange={e=>patch({fg:e.target.value})}/><span>{state.fg.toUpperCase()}</span></div></div><div><div className="field-label"><label htmlFor="text-effect">Efecto</label></div><select id="text-effect" disabled={isParticle(state.animation)} value={state.effect} onChange={e=>patch({effect:e.target.value})}><option value="none">Sin efecto</option><option value="shadow">Sombra</option><option value="outline">Contorno</option><option value="neon">Neón</option><option value="echo">Eco 3D</option></select></div></div>
-    {isParticle(state.animation)&&<p className="particle-hint">Las partículas usan la silueta de la fuente y su propio halo de luz.</p>}
+    <div className="design-detail-row"><div><div className="field-label"><label htmlFor="foreground">Color del texto</label></div><div className="color-input"><input id="foreground" type="color" value={state.fg} onChange={e=>patch({fg:e.target.value})}/><span>{state.fg.toUpperCase()}</span></div></div><div><div className="field-label"><label htmlFor="text-effect">Efecto</label></div><select id="text-effect" disabled={usesParticles} value={state.effect} onChange={e=>patch({effect:e.target.value})}><option value="none">Sin efecto</option><option value="shadow">Sombra</option><option value="outline">Contorno</option><option value="neon">Neón</option><option value="echo">Eco 3D</option></select></div></div>
+    {usesParticles&&<p className="particle-hint">Las partículas usan la silueta de la fuente y su propio halo de luz.</p>}
     <div className="field-label"><span>Textura del fondo</span></div><div className="segmented" role="group" aria-label="Textura del fondo">{[['none','Lisa'],['dots','Puntos'],['grid','Cuadrícula'],['lines','Líneas']].map(([id,label])=><button key={id} aria-pressed={state.pattern===id} className={state.pattern===id?'selected':''} onClick={()=>patch({pattern:id})}>{label}</button>)}</div>
    </>}
    {tab==='background'&&<>
@@ -53,9 +56,16 @@ export function EditorPanel({state,patch,tab,onTab}:{state:Poster;patch:(p:Parti
     <label className="loop-control backdrop-toggle"><input type="checkbox" checked={state.backdropMotion} disabled={state.backdrop==='solid'} onChange={e=>patch({backdropMotion:e.target.checked})}/><span className="toggle" aria-hidden="true"/><span>Animar el fondo</span></label>
    </>}
    {tab==='motion'&&<>
-    <div className="motion-group segmented" role="group" aria-label="Tipo de animación">{[['letters','Letras'],['scene','Palabras'],['particles','Partículas'],['trailer','Tráiler ✦']].map(([id,label])=><button key={id} aria-pressed={motionGroup===id} className={motionGroup===id?'selected':''} onClick={()=>{setMotionGroup(id);if(id==='trailer')patch({animation:'trailer'});else if(id==='particles')patch({animation:isParticle(state.animation)?state.animation:'particle-assemble'});else if(state.animation==='trailer'||isParticle(state.animation))patch({animation:id==='letters'?'letters':'cascade'});}}>{label}</button>)}</div>
-    {motionGroup==='trailer'?<div className="trailer-storyboard"><div className="trailer-storyboard-heading"><strong>Tu mini estreno.</strong><span>{trailerBeats(state.text).length+1} escenas</span></div><div className="trailer-beats">{trailerBeats(state.text).map((text,i)=><div key={i} title={text}><span>{String(i+1).padStart(2,'0')}</span><strong>{text}</strong></div>)}<div className="trailer-final"><span>✦</span><strong>Mensaje completo</strong></div></div><p>Los saltos de línea marcan cada escena.</p></div>:<div className="motion-options" role="group" aria-label="Animación del mensaje">{ANIMATIONS.filter(a=>motionType(a.id)===motionGroup).map(a=><button key={a.id} className={`motion-card demo-${a.id}${state.animation===a.id?' selected':''}`} aria-pressed={state.animation===a.id} title={a.description} onClick={()=>patch({animation:a.id})}><span className="motion-demo" aria-hidden="true"><span>{a.mark}</span></span><span className="motion-name">{a.name}</span>{state.animation===a.id&&<span className="motion-check" aria-hidden="true">✓</span>}</button>)}</div>}
-    {motionGroup==='particles'&&<div className="particle-settings">
+    <div className="motion-group segmented" role="group" aria-label="Tipo de animación">{[['letters','Letras'],['scene','Palabras'],['particles','Partículas'],['trailer','Tráiler ✦']].map(([id,label])=><button key={id} aria-pressed={motionGroup===id} className={motionGroup===id?'selected':''} onClick={()=>{setMotionGroup(id);if(id==='trailer')patch({animation:'trailer',trailerParticles:isParticle(state.animation)||state.trailerParticles,trailerMix:isParticle(state.animation)?false:state.trailerMix});else if(id==='particles')patch({animation:isParticle(state.animation)?state.animation:'particle-assemble'});else if(state.animation==='trailer'||isParticle(state.animation))patch({animation:id==='letters'?'letters':'cascade'});}}>{label}</button>)}</div>
+    {motionGroup==='trailer'?<>
+     <div className="trailer-style segmented" role="group" aria-label="Estilo del tráiler">{[['classic','Clásico'],['particles','Partículas ✦'],['mix','Mezcla ⤨']].map(([id,label])=><button key={id} className={trailerStyle===id?'selected':''} aria-pressed={trailerStyle===id} onClick={()=>patch({trailerParticles:id==='particles',trailerMix:id==='mix'})}>{label}</button>)}</div>
+     {state.trailerMix&&<button className="trailer-shuffle" onClick={()=>patch({trailerSeed:(state.trailerSeed+1)>>>0})}>⤨ Otra mezcla</button>}
+     <div className="trailer-storyboard"><div className="trailer-storyboard-heading"><strong>{state.trailerMix?'Un estreno imprevisible.':state.trailerParticles?'Un estreno de partículas.':'Tu mini estreno.'}</strong><span>{trailer?.scenes.length} escenas</span></div>
+      <div className="trailer-beats">{trailer?.scenes.map((scene,i)=><div key={i} className={scene.final?'trailer-final':''} title={scene.state.text}><span>{scene.final?'✦':String(i+1).padStart(2,'0')}{state.trailerParticles||state.trailerMix?` · ${ANIMATIONS.find(a=>a.id===scene.state.animation)?.name}`:''}</span><strong>{scene.final?'Mensaje completo':scene.state.text}</strong></div>)}</div>
+      <p>{state.trailerMix?'Letras y partículas al azar. El enlace conserva esta mezcla.':state.trailerParticles?'Nube, espiral y explosión. Un cierre con todo tu mensaje.':'Los saltos de línea marcan cada escena.'}</p>
+     </div>
+    </>:<div className="motion-options" role="group" aria-label="Animación del mensaje">{ANIMATIONS.filter(a=>motionType(a.id)===motionGroup).map(a=><button key={a.id} className={`motion-card demo-${a.id}${state.animation===a.id?' selected':''}`} aria-pressed={state.animation===a.id} title={a.description} onClick={()=>patch({animation:a.id})}><span className="motion-demo" aria-hidden="true"><span>{a.mark}</span></span><span className="motion-name">{a.name}</span>{state.animation===a.id&&<span className="motion-check" aria-hidden="true">✓</span>}</button>)}</div>}
+    {(motionGroup==='particles'||motionGroup==='trailer'&&(state.trailerParticles||state.trailerMix))&&<div className="particle-settings">
      <div className="field-label"><label htmlFor="particle-density">Densidad</label><span>{['Ligera','Equilibrada','Intensa'][state.particleDensity-1]}</span></div>
      <input id="particle-density" type="range" min="1" max="3" step="1" value={state.particleDensity} onChange={e=>patch({particleDensity:+e.target.value})}/>
      <label className="loop-control"><input type="checkbox" checked={state.particleInteraction} onChange={e=>patch({particleInteraction:e.target.checked})}/><span className="toggle" aria-hidden="true"/><span>Repulsión magnética</span></label>
