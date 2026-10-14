@@ -1,0 +1,232 @@
+/* Editor "stage": the poster is the scene, the UI dims into a floating dock + tray.
+   Colours come from --poster-* (set inline on .app) so every style tints the room. */
+@property --poster-bg{syntax:'<color>';inherits:true;initial-value:#25382c}
+@property --poster-accent{syntax:'<color>';inherits:true;initial-value:#b7ec46}
+
+.edit-app{
+ --stage:color-mix(in oklab,var(--poster-bg) 22%,#0a0b0c);
+ --glow:color-mix(in oklab,var(--poster-accent) 26%,transparent);
+ --ui-ink:#f4f5f0;--ui-dim:#ffffff91;--ui-surface:#ffffff12;--ui-surface-2:#ffffff22;--ui-line:#ffffff1f;
+ --ui-accent:color-mix(in oklab,var(--poster-accent) 42%,white);
+ --tray-h:min(200px,32dvh);
+ height:100dvh;display:flex;flex-direction:column;color:var(--ui-ink);color-scheme:dark;
+ background:radial-gradient(ellipse 75% 65% at 50% 38%,var(--glow),transparent 72%),var(--stage);
+ transition:--poster-bg .7s ease,--poster-accent .7s ease;
+}
+@supports (color:oklch(from red l c h)){.edit-app{--stage:oklch(from var(--poster-bg) .22 min(c,.055) h)}}
+.edit-app:has(.panel-message){--tray-h:min(176px,30dvh)}
+.edit-app:has(.panel-styles){--tray-h:min(200px,32dvh)}
+.edit-app:has(.panel-design){--tray-h:min(132px,24dvh)}
+.edit-app:has(.panel-background){--tray-h:min(192px,32dvh)}
+.edit-app:has(.panel-motion){--tray-h:min(224px,34dvh)}
+.edit-app dialog{color-scheme:light}
+.edit-app :is(button,a,input,textarea,select):focus-visible{outline-color:var(--ui-accent)}
+
+/* Top bar */
+.edit-app .topbar{height:60px;flex:none;margin:0 24px;gap:18px;border-bottom:0}
+.edit-app .logo{font-size:33px;color:var(--ui-ink)}
+.edit-app .logo span{color:var(--ui-accent)}
+.edit-app .editor-context{font-size:13px;color:var(--ui-dim)}
+.edit-app .editor-actions{margin:0 0 0 auto;display:flex;flex-direction:row;align-items:center;gap:8px}
+.edit-app .editor-actions .button{min-height:38px;padding:9px 14px;font-size:13px}
+.edit-app .language-selector{color:var(--ui-dim)}
+.edit-app .button.secondary{background:var(--ui-surface);border:1px solid var(--ui-line);color:var(--ui-ink);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.edit-app .button.secondary:hover:not(:disabled){background:var(--ui-surface-2)}
+.edit-app .button.primary{background:var(--ui-accent);border-color:transparent;color:#101112}
+.edit-app .button.primary:hover:not(:disabled){filter:brightness(1.08)}
+
+/* Stage */
+.edit-app .edit-main{flex:1;min-height:0;max-width:none;width:100%;padding:0 24px 6px;display:flex;flex-direction:column;gap:0}
+.edit-app .error{flex:none;margin:0 0 8px;background:#3a1712;color:#ffd9d0;border-color:#6b2d22}
+.edit-app .workspace{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px}
+.edit-app .preview-column{flex:1;min-height:0;display:flex;flex-direction:column}
+.edit-app .preview-heading{height:36px;flex:none;margin-bottom:8px}
+.edit-app .trailer-shortcut{border:1px solid var(--ui-line);background:var(--ui-surface);color:var(--ui-ink);padding:6px 12px;border-radius:99px;font-size:12px;font-weight:700}
+.edit-app .trailer-shortcut:hover,.edit-app .trailer-shortcut.selected{background:var(--ui-accent);color:#101112;border-color:transparent}
+.edit-app .ratio-controls{background:var(--ui-surface);border:1px solid var(--ui-line);border-radius:99px;padding:3px}
+.edit-app .ratio-controls button{border-radius:99px;color:var(--ui-dim);padding:4px 12px;font-size:12px}
+.edit-app .ratio-controls button.selected{background:var(--ui-ink);color:#101112;box-shadow:none}
+.edit-app .preview-bed{flex:1;height:auto;aspect-ratio:auto;min-height:0;background:transparent;border:0;box-shadow:none;border-radius:0;overflow:visible}
+.edit-app .poster-frame{min-height:0;flex:none;view-transition-name:poster;border-radius:10px;overflow:hidden;box-shadow:0 0 0 1px #ffffff14,0 28px 70px #0000008c}
+.edit-app .poster-frame.landscape{width:min(100cqw,133.333cqh);height:min(75cqw,100cqh)}
+.edit-app .preview-bottom{height:34px;flex:none;margin-top:8px}
+.edit-app .live-indicator{font-size:11px;color:var(--ui-dim)}
+.edit-app .live-indicator i{background:var(--ui-accent);box-shadow:0 0 0 3px color-mix(in oklab,var(--ui-accent) 25%,transparent)}
+.edit-app .live-indicator i.still{background:#ffffff55;box-shadow:none}
+.edit-app .text-button{color:var(--ui-ink)}
+.edit-app .preview-actions .text-button{border-radius:99px;padding:6px 10px}
+.edit-app .preview-actions .text-button:hover:not(:disabled){background:var(--ui-surface-2)}
+
+/* Dock + tray (tray sits above the dock; DOM keeps tabs first for a11y) */
+.edit-app .editor{display:flex;flex-direction:column-reverse;flex:none;align-self:center;width:min(1120px,100%);height:auto;margin:0 auto 10px;padding:0;border-radius:24px;border:1px solid var(--ui-line);background:color-mix(in oklab,#0b0c0e 72%,transparent);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);box-shadow:0 20px 60px #0007,inset 0 1px 0 #ffffff14;overflow:hidden}
+.edit-app .editor-tabs{display:flex;flex:none;justify-content:center;gap:4px;padding:6px;border:0;background:none}
+.edit-app .editor-tabs button{flex:1 1 0;max-width:150px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px 7px;border-radius:16px;border-bottom:0;background:none;color:var(--ui-dim);font-size:11px;font-weight:700}
+.edit-app .editor-tabs button svg{width:20px;height:20px}
+.edit-app .editor-tabs button:hover{background:var(--ui-surface);color:var(--ui-ink)}
+.edit-app .editor-tabs button[aria-selected=true]{background:var(--ui-surface-2);color:var(--ui-ink)}
+.edit-app .editor-tabs button[aria-selected=true] svg{color:var(--ui-accent)}
+.edit-app .editor-tabs button:focus-visible{outline-offset:-3px}
+.edit-app .editor-panel{flex:none;height:var(--tray-h);padding:16px 20px;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#ffffff33 transparent;border-bottom:1px solid var(--ui-line);animation:tray-in .28s cubic-bezier(.2,.8,.2,1)}
+.edit-app .editor-panel[hidden]{display:none}
+.edit-app .editor-panel:focus-visible{outline-offset:-4px}
+@keyframes tray-in{from{opacity:0;transform:translateY(8px)}}
+
+/* Shared tray atoms */
+.edit-app .field-label{margin:14px 0 8px;font-size:13px;color:var(--ui-ink)}
+.edit-app .field-label:first-child{margin-top:0}
+.edit-app .field-label>span:not(:only-child){color:var(--ui-dim)}
+.edit-app .tray-col{min-width:0}
+.edit-app .editor textarea{background:var(--ui-surface);border:1px solid var(--ui-line);color:var(--ui-ink);border-radius:14px;font-size:16px;line-height:1.5;resize:none;min-height:0;max-height:none}
+.edit-app .editor textarea::placeholder{color:var(--ui-dim)}
+.edit-app .editor select{background:var(--ui-surface);border:1px solid var(--ui-line);color:var(--ui-ink);border-radius:12px;font-size:13px;min-height:40px}
+.edit-app input[type=range]{width:100%;accent-color:var(--ui-accent)}
+.edit-app .color-input{background:var(--ui-surface);border:1px solid var(--ui-line);border-radius:12px;padding:5px 8px}
+.edit-app .color-input span{color:var(--ui-dim);font-size:12px}
+.edit-app .color-input input{width:28px;height:28px}
+.edit-app .segmented,.edit-app .text-alignment{display:flex;gap:2px;padding:3px;background:var(--ui-surface);border:1px solid var(--ui-line);border-radius:12px}
+.edit-app .segmented button,.edit-app .text-alignment button{background:none;border-radius:9px;color:var(--ui-dim);font-size:12px;padding:8px 6px}
+.edit-app .segmented button:hover:not(.selected),.edit-app .text-alignment button:hover:not(.selected){color:var(--ui-ink)}
+.edit-app .segmented .selected,.edit-app .text-alignment .selected{background:var(--ui-ink);color:#101112;box-shadow:none;font-weight:700}
+.edit-app .font-trigger{background:var(--ui-surface);border:1px solid var(--ui-line);color:var(--ui-ink);border-radius:12px;min-height:44px}
+.edit-app .font-trigger:hover{background:var(--ui-surface-2)}
+.edit-app .font-trigger small,.edit-app .font-trigger>span:last-child{color:var(--ui-dim)}
+.edit-app .loop-control{color:var(--ui-ink);font-size:12px}
+.edit-app .toggle{background:#ffffff33}
+.edit-app .loop-control input:checked+.toggle{background:var(--ui-accent)}
+.edit-app .loop-control input:checked+.toggle:after{background:#101112}
+.edit-app .particle-hint,.edit-app .motion-description,.edit-app .pace-control>span,.edit-app .galaxy-settings label{color:var(--ui-dim)}
+.edit-app .field-error{color:#ff9d8a}
+
+/* Message */
+.edit-app .panel-message{display:grid;grid-template-columns:minmax(0,2fr) minmax(220px,1fr);grid-template-rows:minmax(0,1fr);gap:24px}
+.edit-app .panel-message .tray-wide{display:flex;flex-direction:column;min-height:0}
+.edit-app .panel-message textarea{flex:1;height:auto;padding:12px 14px}
+
+/* Styles */
+.edit-app .panel-styles{display:flex;flex-direction:column;gap:10px}
+.edit-app .collection-controls{margin:0}
+.edit-app .collection-controls strong{color:var(--ui-ink)}
+.edit-app .collection-controls span{color:var(--ui-dim)}
+.edit-app .collection-controls>button{background:var(--ui-surface);color:var(--ui-ink);border-radius:10px}
+.edit-app .collection-controls>button:hover{background:var(--ui-surface-2)}
+.edit-app .styles{display:flex;gap:12px;overflow-x:auto;padding:4px 3px 6px;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:#ffffff33 transparent}
+.edit-app .style-card{flex:0 0 clamp(118px,15.4%,176px);scroll-snap-align:start}
+.edit-app .swatch{height:clamp(58px,9.5dvh,92px);min-height:0;max-height:none;font-size:clamp(17px,2.1vw,25px);border-radius:12px}
+.edit-app .style-name{display:block;margin-top:7px;font-size:12px;line-height:1.3;color:var(--ui-dim)}
+.edit-app .style-card.active .style-name,.edit-app .style-card:hover .style-name{color:var(--ui-ink)}
+.edit-app .style-card:hover .swatch{box-shadow:0 0 0 3px #ffffff40}
+.edit-app .style-card.active .swatch{box-shadow:0 0 0 2px #0b0c0e,0 0 0 4px var(--ui-accent)}
+.edit-app .style-card:hover{transform:translateY(-2px)}
+
+/* Design */
+.edit-app .panel-design{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1fr);gap:24px;align-content:start}
+.edit-app .design-detail-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:0}
+.edit-app .design-detail-row .field-label{margin-top:0}
+.edit-app .design-detail-row .color-input,.edit-app .design-detail-row select{height:44px}
+
+/* Backgrounds */
+.edit-app .panel-background{display:flex;flex-direction:column;gap:14px}
+.edit-app .backdrop-options{display:flex;gap:9px;overflow-x:auto;padding:2px;scrollbar-width:thin;scrollbar-color:#ffffff33 transparent}
+.edit-app .backdrop-choice{flex:1 0 92px;max-width:150px;background:var(--ui-surface);border:1px solid transparent;color:var(--ui-dim);border-radius:12px}
+.edit-app .backdrop-choice svg{height:clamp(34px,6dvh,48px);border-radius:8px}
+.edit-app .backdrop-choice:hover{background:var(--ui-surface-2);color:var(--ui-ink)}
+.edit-app .backdrop-choice.selected{background:var(--ui-surface-2);color:var(--ui-ink);border-color:var(--ui-accent);box-shadow:none}
+.edit-app .tray-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px}
+.edit-app .tray-row .colors{margin:0;gap:14px}
+.edit-app .colors>label>span{color:var(--ui-ink);font-size:13px;margin-bottom:6px}
+.edit-app .tray-row .backdrop-toggle{margin:0}
+
+/* Motion */
+.edit-app .panel-motion{display:flex;flex-direction:column;gap:12px}
+.edit-app .panel-motion>*{margin:0;flex:none}
+.edit-app .motion-group{max-width:480px}
+.edit-app .motion-options{display:flex;gap:8px;overflow-x:auto;padding:2px;scrollbar-width:thin;scrollbar-color:#ffffff33 transparent}
+.edit-app .motion-card{flex:0 0 clamp(128px,15%,172px);min-height:56px;padding:9px;gap:7px;background:var(--ui-surface);border:1px solid transparent;color:var(--ui-dim);border-radius:12px}
+.edit-app .motion-card:hover{background:var(--ui-surface-2);color:var(--ui-ink)}
+.edit-app .motion-card.selected{background:var(--ui-surface-2);color:var(--ui-ink);border-color:var(--ui-accent)}
+.edit-app .motion-check{color:var(--ui-accent)}
+.edit-app :is(.demo-particle-assemble,.demo-particle-explode,.demo-particle-vortex) .motion-demo{color:var(--ui-accent);text-shadow:0 0 9px color-mix(in oklab,var(--ui-accent) 45%,transparent)}
+.edit-app .motion-settings{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:12px 28px;border-top:0;padding:0}
+.edit-app .pace-control{display:flex;align-items:center;gap:10px}
+.edit-app .pace-control .segmented button{padding:6px 10px}
+.edit-app .loop-control{padding-bottom:0}
+.edit-app .trailer-storyboard{background:var(--ui-surface);border:1px solid var(--ui-line);border-radius:14px}
+.edit-app .trailer-storyboard-heading strong{color:var(--ui-ink)}
+.edit-app .trailer-storyboard-heading>span,.edit-app .trailer-storyboard>p{color:var(--ui-dim)}
+.edit-app .trailer-beats>div{background:var(--ui-surface);border-color:var(--ui-line)}
+.edit-app .trailer-beats>div>span{color:var(--ui-dim)}
+.edit-app .trailer-beats strong{color:var(--ui-ink)}
+.edit-app .trailer-beats .trailer-final{background:var(--ui-accent);border-color:transparent}
+.edit-app .trailer-beats .trailer-final strong{color:#101112}
+.edit-app .trailer-final>span{color:#101112!important}
+.edit-app .trailer-shuffle{background:var(--ui-surface);border:1px solid var(--ui-line);color:var(--ui-ink);border-radius:12px}
+.edit-app .trailer-shuffle:hover{background:var(--ui-surface-2)}
+
+/* Credit */
+.edit-app>.origin-credit{color:#ffffff73;padding:0 12px 8px}
+.edit-app>.origin-credit a{color:#ffffffa6;border-color:#ffffff33}
+.edit-app>.origin-credit a:hover{color:#fff;border-color:#fff}
+
+@media(min-width:1200px) and (min-height:760px){
+ /* Big screens: heading/actions float in the corners so the poster gets the height. */
+ .edit-app .preview-column{position:relative}
+ .edit-app .preview-heading,.edit-app .preview-bottom{position:absolute;left:0;right:0;z-index:2;margin:0;pointer-events:none}
+ .edit-app .preview-heading{top:0}
+ .edit-app .preview-bottom{bottom:0}
+ .edit-app .preview-heading>*,.edit-app .preview-bottom>*{pointer-events:auto}
+ .edit-app .poster-frame.landscape{width:min(calc(100cqw - 560px),133.333cqh);height:min(calc(75cqw - 420px),100cqh)}
+}
+@media(max-height:650px){
+ .edit-app,.edit-app:has(.editor-panel){--tray-h:min(180px,34dvh)}
+ .edit-app .topbar{height:52px}
+ .edit-app .preview-heading{height:30px;margin-bottom:6px}
+ .edit-app .preview-bottom{height:28px;margin-top:6px}
+ .edit-app .editor-tabs button{padding:6px 4px 5px}
+}
+@media(max-width:760px){
+ .edit-app,.edit-app:has(.editor-panel){--tray-h:clamp(190px,36dvh,330px)}
+ .edit-app .topbar{height:52px;margin:0 14px;gap:10px}
+ .edit-app .logo{font-size:28px;letter-spacing:-2px}
+ .edit-app .editor-context{display:none}
+ .edit-app .editor-actions{gap:5px;flex-wrap:nowrap}
+ .edit-app .editor-actions .button{flex:none;min-height:34px;padding:7px 11px;font-size:12px;white-space:nowrap}
+ .edit-app .download-button span,.edit-app .surprise-button span{display:none}
+ .edit-app .download-button,.edit-app .surprise-button{width:34px;padding:7px!important}
+ .edit-app .edit-main{padding:0 10px 4px}
+ .edit-app .preview-heading{height:32px}
+ .edit-app .preview-bottom .text-button{font-size:12px}
+ .edit-app .editor{border-radius:20px;margin-bottom:6px}
+ .edit-app .editor-tabs{padding:4px}
+ .edit-app .editor-tabs button{font-size:10px;padding:6px 2px 5px}
+ .edit-app .editor-tabs button svg{width:18px;height:18px}
+ .edit-app .editor-panel{padding:12px 14px}
+ .edit-app .panel-message{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto;gap:12px}
+ .edit-app .panel-message .tray-wide{min-height:0}
+ .edit-app .panel-message textarea{flex:none;height:72px}
+ .edit-app .panel-design{grid-template-columns:minmax(0,1fr);gap:14px}
+ .edit-app .style-card{flex-basis:112px}
+ .edit-app .swatch{height:60px}
+ .edit-app .backdrop-choice{flex-basis:88px}
+ .edit-app .motion-card{flex-basis:124px}
+}
+@media(max-width:380px){
+ .edit-app .editor-tabs{gap:1px;padding:4px 2px}
+ .edit-app .editor-tabs button{font-size:9px;letter-spacing:-.2px;padding:6px 0 5px}
+}
+@media(orientation:landscape) and (max-height:500px){
+ .edit-app,.edit-app:has(.editor-panel){--tray-h:auto}
+ .edit-app .topbar{height:46px}
+ .edit-app .edit-main{padding:0 14px 6px}
+ .edit-app .workspace{flex-direction:row;gap:12px}
+ .edit-app .editor{width:min(340px,42%);height:100%;margin:0;align-self:stretch}
+ .edit-app .editor:has(.editor-panel[hidden]){height:auto;align-self:flex-end}
+ .edit-app .editor-panel{flex:1;min-height:0;height:auto}
+ .edit-app .editor-tabs button span{display:none}
+ .edit-app .panel-message{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto;gap:12px}
+ .edit-app .panel-message textarea{flex:none;height:64px}
+ .edit-app .panel-design{grid-template-columns:minmax(0,1fr);gap:12px}
+}
+@media(prefers-reduced-motion:reduce){
+ .edit-app{transition:none}
+ .edit-app .editor-panel{animation:none}
+}
