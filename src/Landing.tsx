@@ -1,13 +1,15 @@
 import {useI18n} from './useI18n';
-import {useEffect,useLayoutEffect,useRef,useState,type CSSProperties} from 'react';
+import {useEffect,useLayoutEffect,useMemo,useRef,useState,type CSSProperties} from 'react';
 import {Backdrop} from './Backdrop';
-import {DEFAULT,MAX_TEXT} from './state.mjs';
+import {PosterStage} from './PosterStage';
+import type {Poster} from './render';
+import {DEFAULT,MAX_TEXT,validateState} from './state.mjs';
 
 // Curated pairs keep the first impression coherent; never shuffle while typing.
 const entrances=[
- {id:'sunrise',animation:'letters',backdrop:'mesh',bg:'#fffbf5',fg:'#e85d0a',accent:'#ffd0a0',button:'#b94208',font:'"DM Sans", sans-serif',weight:800,italic:'italic'},
- {id:'lilac',animation:'bounce',backdrop:'aurora',bg:'#fcfaff',fg:'#5943b8',accent:'#dacefa',button:'#5943b8',font:'"DM Serif Display", serif',weight:400,italic:'normal'},
- {id:'tide',animation:'orbit',backdrop:'waves',bg:'#f7fbf8',fg:'#12665d',accent:'#b8e4d2',button:'#12665d',font:'"Space Grotesk", sans-serif',weight:700,italic:'normal'},
+ {id:'sunrise',fontId:'sans',animation:'letters',backdrop:'mesh',bg:'#fffbf5',fg:'#e85d0a',accent:'#ffd0a0',button:'#b94208',font:'"DM Sans", sans-serif',weight:800,italic:'italic'},
+ {id:'lilac',fontId:'serif',animation:'bounce',backdrop:'aurora',bg:'#fcfaff',fg:'#5943b8',accent:'#dacefa',button:'#5943b8',font:'"DM Serif Display", serif',weight:400,italic:'normal'},
+ {id:'tide',fontId:'space',animation:'orbit',backdrop:'waves',bg:'#f7fbf8',fg:'#12665d',accent:'#b8e4d2',button:'#12665d',font:'"Space Grotesk", sans-serif',weight:700,italic:'normal'},
 ];
 
 function TypewriterTagline({tagline}:{tagline:string}){
@@ -49,11 +51,17 @@ function TypewriterTagline({tagline}:{tagline:string}){
  </p>;
 }
 
-export function Landing({draft,error,onDraft,onCreate}:{draft:string;error:string;onDraft:(text:string)=>void;onCreate:()=>void}){
+export function Landing({draft,error,flash,onDraft,onCreate}:{draft:string;error:string;flash:Partial<Poster>|null;onDraft:(text:string)=>void;onCreate:()=>void}){
  const {t,locale}=useI18n();
  const [entrance]=useState(()=>entrances[Math.floor(Math.random()*entrances.length)]);
  const [settled,setSettled]=useState(false),[focused,setFocused]=useState(false);
- const inputRef=useRef<HTMLTextAreaElement>(null);
+ const inputRef=useRef<HTMLTextAreaElement>(null),formRef=useRef<HTMLFormElement>(null),formRect=useRef<DOMRect>(undefined);
+ // The message is shown poster-size from the first key; animation stays off so typing never restarts it.
+ const poster=useMemo(()=>{
+  if(!draft.trim())return null;
+  try{return validateState({...DEFAULT,backdrop:entrance.backdrop,bg:entrance.bg,fg:entrance.fg,accent:entrance.accent,font:entrance.fontId,animation:'none',backdropMotion:false,...flash,text:draft.split('\n').slice(0,12).join('\n')}) as Poster;}catch{return null;}
+ },[draft,entrance,flash]);
+ const typing=!!poster;
  useEffect(()=>{const timer=setTimeout(()=>setSettled(true),4500);return()=>clearTimeout(timer);},[]);
  useLayoutEffect(()=>{
   const input=inputRef.current;if(!input)return;
@@ -64,23 +72,34 @@ export function Landing({draft,error,onDraft,onCreate}:{draft:string;error:strin
   document.fonts.ready.then(()=>{if(active)resize();});
   return()=>{active=false;observer.disconnect();};
  },[draft]);
+ // FLIP: slide the composer from the centre to the bottom bar (and back) instead of jumping.
+ useLayoutEffect(()=>{
+  const form=formRef.current;if(!form)return;
+  const before=formRect.current,after=form.getBoundingClientRect();
+  formRect.current=after;
+  if(!before||matchMedia('(prefers-reduced-motion: reduce)').matches||!form.animate)return;
+  const dx=before.left-after.left,dy=before.top-after.top;
+  if(Math.abs(dx)>1||Math.abs(dy)>1)form.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:'none'}],{duration:480,easing:'cubic-bezier(.2,.8,.2,1)'});
+ },[typing]);
+ useEffect(()=>{const track=()=>{if(formRef.current)formRect.current=formRef.current.getBoundingClientRect();};addEventListener('resize',track);return()=>removeEventListener('resize',track);},[]);
  const quiet=settled||focused||!!draft;
  const theme={'--landing-ink':entrance.fg,'--landing-accent':entrance.accent,'--landing-button':entrance.button,'--landing-paper':entrance.bg,'--landing-font':entrance.font,'--landing-weight':entrance.weight,'--landing-italic':entrance.italic,'--bg-duration':'16s','--play-state':quiet?'paused':'running'} as CSSProperties;
  return <>
   <div className="landing-scene" style={theme} aria-hidden="true" data-entrance={entrance.id}>
    <svg viewBox="0 0 1440 1000" preserveAspectRatio="xMidYMid slice" focusable="false"><Backdrop state={{...DEFAULT,...entrance,backdropMotion:true}} width={1440} height={1000}/></svg>
   </div>
-  <main className="landing-content" style={theme}>
+  {poster&&<div className="landing-poster" style={{background:poster.bg}}><PosterStage state={poster}/></div>}
+  <main className="landing-content" style={theme} data-typing={typing}>
    <h1 className={`landing-logo motion-${entrance.animation}`} aria-label="gzaas!">
     <span className="landing-word" aria-hidden="true">{Array.from('gzaas!').map((letter,i)=><span key={i} className="motion-unit" style={{animationDelay:`${i*.075}s`}}>{letter}</span>)}</span>
    </h1>
    <TypewriterTagline key={locale} tagline={t('Tus mensajes, a toda pantalla.')}/>
-   <form className="landing-form" onSubmit={e=>{e.preventDefault();onCreate();}}>
+   <form ref={formRef} className="landing-form" onSubmit={e=>{e.preventDefault();onCreate();}}>
     <label className="sr-only" htmlFor="landing-message">{t("Tu mensaje")}</label>
     <div className="landing-composer">
-     <textarea id="landing-message" ref={inputRef} rows={2} value={draft} placeholder={t("Algo que merezca verse en grande…")} aria-invalid={!!error} aria-describedby={error?'landing-error':undefined} onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)} onChange={e=>onDraft([...e.target.value].slice(0,MAX_TEXT).join(''))} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();if(draft.trim())onCreate();}}} spellCheck={false}/>
+     <textarea id="landing-message" ref={inputRef} rows={2} value={draft} readOnly={!!flash} placeholder={t("Algo que merezca verse en grande…")} aria-invalid={!!error} aria-describedby={error?'landing-error':undefined} onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)} onChange={e=>onDraft([...e.target.value].slice(0,MAX_TEXT).join(''))} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();if(draft.trim())onCreate();}}} spellCheck={false}/>
      <div className="landing-actions">
-      <button className="landing-submit" type="submit" disabled={!draft.trim()}>gzaas it! <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></button>
+      <button className="landing-submit" type="submit" disabled={!draft.trim()||!!flash}>gzaas it! <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></button>
      </div>
     </div>
     {error&&<p id="landing-error" className="field-error" role="alert">{t(error)}</p>}

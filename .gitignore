@@ -10,3 +10,4 @@ gzaas-preview.html
 .DS_Store
 !.vscode/
 !.vscode/*.json
+.playwright-mcp

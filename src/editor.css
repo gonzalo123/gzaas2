@@ -16,7 +16,7 @@
 .edit-app .preview-column {min-height:0}
 .edit-app .preview-heading {height:28px;flex:none;margin-bottom:12px}
 .edit-app .preview-bed {flex:1;height:auto;aspect-ratio:auto;min-height:0;background:#e9ebe4;box-shadow:none;border:1px solid #e1e5d9;border-radius:12px}
-.edit-app .poster-frame {min-height:0;flex:none}
+.edit-app .poster-frame {min-height:0;flex:none;view-transition-name:poster}
 .edit-app .poster-frame.landscape {width:min(100cqw,133.333cqh);height:min(75cqw,100cqh)}
 .edit-app .preview-bottom {height:28px;flex:none;margin-top:12px}
 .edit-app .editor {display:flex;flex-direction:column;min-height:0;height:100%;padding:0;align-self:stretch;overflow:hidden}
@@ -92,8 +92,8 @@
  .edit-app .editor-actions {gap:5px;flex-wrap:nowrap}
  .edit-app .editor-actions .button {flex:none;min-height:34px;padding:7px 11px;font-size:12px;white-space:nowrap}
  .edit-app .editor-actions .icon-button {width:32px;height:34px}
- .edit-app .download-button span {display:none}
- .edit-app .download-button {width:34px;padding:7px!important}
+ .edit-app .download-button span,.edit-app .surprise-button span {display:none}
+ .edit-app .download-button,.edit-app .surprise-button {width:34px;padding:7px!important}
  .edit-app .edit-main {padding:12px 14px 14px}
  .edit-app .workspace {display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(124px,.7fr) minmax(0,1fr);gap:14px}
  .edit-app .preview-heading {height:24px;margin-bottom:7px}

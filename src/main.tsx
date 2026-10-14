@@ -23,6 +23,7 @@ import{DEFAULT,PRESETS,MAX_TEXT,encodeState,decodeState,validateState}from'./sta
 import{paint,waitFonts,type Poster}from'./render';
 import{PosterStage}from'./PosterStage';
 import {Landing} from './Landing';
+import {useRoulette} from './useRoulette';
 import{EditorPanel,type EditorTab}from'./EditorPanel';
 import{ExportDialog}from'./ExportDialog';
 import{ShareDialog}from'./ShareDialog';
@@ -50,14 +51,15 @@ function App(){
  const[paused,setPaused]=useState(false),[replay,setReplay]=useState(0),[controlsVisible,setControlsVisible]=useState(false),[closing,setClosing]=useState(false);
  const[landing,setLanding]=useState(!location.hash||!!boot.error),[draft,setDraft]=useState('');
  const[editorTab,setEditorTab]=useState<EditorTab>('message');
- const[exportOpen,setExportOpen]=useState(false);
+ const[exportOpen,setExportOpen]=useState(false),[flash,setFlash]=useState<Partial<Poster>|null>(null);
+ const roulette=useRoulette(),holdTimer=useRef<ReturnType<typeof setTimeout>>(undefined);
  const stateRef=useRef(state);stateRef.current=state;
  const toastTimer=useRef<ReturnType<typeof setTimeout>>(undefined),exitTimer=useRef<ReturnType<typeof setTimeout>>(undefined);
  function notify(s:string){setToast(s);clearTimeout(toastTimer.current);toastTimer.current=setTimeout(()=>setToast(''),3000);}
  function patch(p:Partial<Poster>){setState(prev=>({...prev,...p}));setPaused(false);}
  function restart(){setReplay(n=>n+1);setPaused(false);}
  function getUrl(){return location.href.split('#')[0]+encodeState(state);}
- useEffect(()=>{const onHash=()=>{clearTimeout(exitTimer.current);setClosing(false);setShareOpen(false);setExportOpen(false);setPaused(false);try{if(location.hash){setState(decodeState(location.hash.replace('#edit:','#')));setView(!location.hash.startsWith('#edit:'));setLanding(false);}else{setView(false);setLanding(true);setDraft('');}setError('');}catch(e){setError((e as Error).message);setView(false);setLanding(true);}};addEventListener('hashchange',onHash);return()=>removeEventListener('hashchange',onHash);},[]);
+ useEffect(()=>{const onHash=()=>{clearTimeout(exitTimer.current);clearTimeout(holdTimer.current);roulette.cancel();setFlash(null);setClosing(false);setShareOpen(false);setExportOpen(false);setPaused(false);try{if(location.hash){setState(decodeState(location.hash.replace('#edit:','#')));setView(!location.hash.startsWith('#edit:'));setLanding(false);}else{setView(false);setLanding(true);setDraft('');}setError('');}catch(e){setError((e as Error).message);setView(false);setLanding(true);}};addEventListener('hashchange',onHash);return()=>removeEventListener('hashchange',onHash);},[]);
  useEffect(()=>{const esc=(e:KeyboardEvent)=>{if(e.key==='Escape'&&!shareOpen&&!exportOpen)edit();};addEventListener('keydown',esc);return()=>removeEventListener('keydown',esc);},[view,shareOpen,exportOpen]);
  useLayoutEffect(()=>{
   if(!view)return;
@@ -69,7 +71,7 @@ function App(){
   hide();addEventListener('pointermove',move);addEventListener('pointerdown',touch);addEventListener('keydown',reveal);document.addEventListener('fullscreenchange',hide);
   return()=>{clearTimeout(timer);removeEventListener('pointermove',move);removeEventListener('pointerdown',touch);removeEventListener('keydown',reveal);document.removeEventListener('fullscreenchange',hide);};
  },[view]);
- useEffect(()=>()=>{clearTimeout(toastTimer.current);clearTimeout(exitTimer.current);},[]);
+ useEffect(()=>()=>{clearTimeout(toastTimer.current);clearTimeout(exitTimer.current);clearTimeout(holdTimer.current);},[]);
  useEffect(()=>{
   const ctx=(document as Document&{modelContext?:{registerTool:(t:unknown,o:unknown)=>Promise<void>|void}}).modelContext;if(!ctx)return;
   const life=new AbortController();try{Promise.resolve(ctx.registerTool({name:'configure_gzaas_message',description:'Set the message text in the visible Gzaas editor. Does not publish or share.',inputSchema:{type:'object',properties:{text:{type:'string',minLength:1,maxLength:280}},required:['text'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:true},execute:(input:unknown)=>{const text=(input as {text?:unknown})?.text;if(typeof text!=='string')throw Error('text must be a string');const next=validateState({...stateRef.current,text});flushSync(()=>{setState(next);setView(false);setLanding(false);});return{configured:true,text:next.text};}},{signal:life.signal})).catch(()=>{});}catch{}return()=>life.abort();
@@ -79,14 +81,36 @@ function App(){
  const hasMotion=state.animation!=='none'||state.backdropMotion&&state.backdrop!=='solid';
  async function share(){try{const url=getUrl();setShareUrl(url);setShareOpen(true);}catch(e){setError((e as Error).message);}}
  async function download(){setBusy(true);try{await waitFonts(state);const canvas=document.createElement('canvas');const [w,h]=ratio==='square'?[1600,1600]:ratio==='portrait'?[1200,1600]:[1920,1440];await paint(canvas,state,w,h);const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('No se pudo crear la imagen.')),'image/png'));const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='gzaas.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);notify('Tu imagen está lista.');}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
- function surprise(){const current=PRESETS.findIndex(p=>p.bg===state.bg);let idx;do{idx=Math.floor(Math.random()*PRESETS.length);}while(idx===current);const{name,sample,...style}=PRESETS[idx];patch(style);notify(name);}
+ function surprise(){
+  if(roulette.spinning)return;
+  const current=PRESETS.findIndex(p=>p.bg===state.bg);let idx;do{idx=Math.floor(Math.random()*PRESETS.length);}while(idx===current);
+  const keep={backdrop:state.backdrop,accent:state.accent,backdropMotion:state.backdropMotion};
+  // Flashes stay light (no particles/3D); only the landing preset brings its own animation.
+  roulette.spin(idx,(i,final)=>{const{name,sample,...style}=PRESETS[i];patch(final?style:{...keep,...style,animation:'none'});},()=>notify(PRESETS[idx].name));
+ }
  function fullScreen(){clearTimeout(exitTimer.current);setClosing(false);setPaused(false);setControlsVisible(false);setView(true);}
  function edit(){if(!view||closing)return;setClosing(true);exitTimer.current=setTimeout(()=>{setView(false);setClosing(false);if(document.fullscreenElement)void document.exitFullscreen();},matchMedia('(prefers-reduced-motion: reduce)').matches?0:320);}
- function createMessage(){try{const{name,sample,...style}=PRESETS[Math.floor(Math.random()*PRESETS.length)];setState(validateState({...DEFAULT,...style,text:draft}));setError('');setPaused(false);setView(false);setLanding(false);window.scrollTo(0,0);}catch(e){setError((e as Error).message);}}
+ function createMessage(){
+  if(roulette.spinning)return;
+  try{
+   const idx=Math.floor(Math.random()*PRESETS.length),styleOf=(i:number)=>{const{name,sample,...style}=PRESETS[i];return style;};
+   const next=validateState({...DEFAULT,...styleOf(idx),text:draft});
+   const enter=()=>{
+    const commit=()=>{flushSync(()=>{setState(next);setError('');setPaused(false);setView(false);setLanding(false);setFlash(null);});window.scrollTo(0,0);};
+    const transition=(document as Document&{startViewTransition?:(cb:()=>void)=>unknown}).startViewTransition;
+    if(transition&&!matchMedia('(prefers-reduced-motion: reduce)').matches)transition.call(document,commit);else commit();
+   };
+   roulette.spin(idx,(i,final)=>setFlash({...DEFAULT,...styleOf(i),...(final?{}:{animation:'none'})}),()=>{
+    notify(PRESETS[idx].name);
+    // Let the chosen style play for a beat before the poster flies into the editor.
+    holdTimer.current=setTimeout(enter,matchMedia('(prefers-reduced-motion: reduce)').matches?0:900);
+   });
+  }catch(e){setError((e as Error).message);}
+ }
  return <div className={landing?'app landing':view?`app viewer${controlsVisible?' controls-visible':''}${closing?' viewer-closing':''}`:'app edit-app'}>
  {(landing||view)&&<LanguageSelector className={landing?'landing-language':'viewer-language'}/>}
- {landing&&<Landing draft={draft} error={error} onDraft={text=>{setDraft(text);setError('');}} onCreate={createMessage}/>}
- {!landing&&!view&&<><header className="topbar"><a className="logo" href={location.pathname} aria-label={t("Gzaas, inicio")}>gzaas<span>!</span></a><span className="editor-context">{t("Dale tu toque.")}</span><div className="editor-actions"><LanguageSelector/><button className="icon-button" aria-label={t("Sorpréndeme")} title={t("Sorpréndeme")} onClick={surprise}><Icon name="shuffle"/></button><button className="button secondary download-button" aria-label={busy?t("Preparando imagen"):t("Descargar mensaje")} title={t("Descargar PNG o GIF")} disabled={invalid||busy} onClick={()=>setExportOpen(true)}><Icon name="download"/><span>{busy?t("Preparando…"):t("Descargar")}</span></button><button className="button primary share-button" aria-label={t("Compartir")} onClick={share} disabled={invalid}><Icon name="share"/><span>{t("Compartir")}</span></button></div></header>
+ {landing&&<Landing draft={draft} error={error} flash={flash} onDraft={text=>{setDraft(text);setError('');}} onCreate={createMessage}/>}
+ {!landing&&!view&&<><header className="topbar"><a className="logo" href={location.pathname} aria-label={t("Gzaas, inicio")}>gzaas<span>!</span></a><span className="editor-context">{t("Dale tu toque.")}</span><div className="editor-actions"><LanguageSelector/><button className="button secondary surprise-button" aria-label={t("Sorpréndeme")} title={t("Sorpréndeme")} disabled={roulette.spinning} onClick={surprise}><Icon name="shuffle"/><span>{t("Sorpréndeme")}</span></button><button className="button secondary download-button" aria-label={busy?t("Preparando imagen"):t("Descargar mensaje")} title={t("Descargar PNG o GIF")} disabled={invalid||busy} onClick={()=>setExportOpen(true)}><Icon name="download"/><span>{busy?t("Preparando…"):t("Descargar")}</span></button><button className="button primary share-button" aria-label={t("Compartir")} onClick={share} disabled={invalid}><Icon name="share"/><span>{t("Compartir")}</span></button></div></header>
  <main className="edit-main">
  {error&&<div role="alert" className="error"><span>{t(error)}</span><button onClick={()=>{setError('');history.replaceState(null,'',location.pathname+location.search);}} aria-label={t("Cerrar aviso")}><Icon name="close"/></button></div>}
  <div className="workspace"><section className="preview-column" aria-label={t("Vista previa del mensaje")}><div className="preview-heading"><button className={`trailer-shortcut${state.animation==='trailer'?' selected':''}`} aria-pressed={state.animation==='trailer'} onClick={()=>{patch({animation:state.animation==='trailer'?(state.trailerGalaxy?'particle-galaxy':state.trailerParticles?'particle-assemble':'letters'):'trailer',trailerGalaxy:isParticle(state.animation)?isGalaxy(state.animation):state.trailerGalaxy,trailerParticles:isParticle(state.animation)||state.trailerParticles,trailerMix:isParticle(state.animation)?false:state.trailerMix});setEditorTab('motion');}}>{t("▶ Tráiler")}</button><div className="ratio-controls" aria-label={t("Proporción del cartel")}>{[['landscape','4:3'],['square','1:1'],['portrait','3:4']].map(([key,label])=><button key={key} className={ratio===key?'selected':''} onClick={()=>setRatio(key)} aria-pressed={ratio===key}>{label}</button>)}</div></div><div className={'preview-bed '+ratio}><div className={'poster-frame '+ratio}><PosterStage state={state} paused={paused} replay={replay} onError={setError} onPlay={()=>setPaused(false)}/></div></div><div className="preview-bottom"><span className="live-indicator"><i className={paused||!hasMotion?'still':''}/>{paused?t("En pausa"):!hasMotion?t("Sin movimiento"):t("Vista previa en vivo")}</span><div className="preview-actions"><button className="text-button" aria-label={paused?t("Reanudar animación"):t("Pausar animación")} disabled={!hasMotion} onClick={()=>setPaused(p=>!p)}><Icon name={paused?'play':'pause'}/></button><button className="text-button" aria-label={t("Repetir animación")} disabled={!hasMotion} onClick={restart}><Icon name="replay"/></button><button className="text-button" disabled={invalid} onClick={fullScreen}><Icon name="expand"/>{t("Ver en grande")}</button></div></div></section><EditorPanel state={state} patch={patch} tab={editorTab} onTab={setEditorTab}/></div></main></>}
