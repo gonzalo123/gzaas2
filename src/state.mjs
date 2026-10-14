@@ -48,7 +48,7 @@ export const PRESETS = [
  {name:'Entre líneas',sample:'Quédate\nun rato.',font:'serif',fg:'#272727',bg:'#f3f1eb',pattern:'lines',effect:'none',animation:'reveal'},
  {name:'Neón rosa',sample:'STAY\nWILD',font:'monoton',fg:'#ff9dea',bg:'#110620',accent:'#9b28ee',backdrop:'aurora',effect:'neon',animation:'wave'},
  {name:'Club nocturno',sample:'AFTER\nHOURS',font:'bungee',fg:'#fff68f',bg:'#16092b',accent:'#e72586',backdrop:'rays',animation:'impact'},
- {name:'Otra galaxia',sample:'SIN\nLÍMITES',font:'space',fg:'#f5eaff',bg:'#091129',accent:'#5659ee',backdrop:'stars',animation:'particle-galaxy'},
+ {name:'Otra galaxia',sample:'SIN\nLÍMITES',font:'anton',fg:'#68dcff',bg:'#030817',accent:'#eb62dc',backdrop:'solid',animation:'particle-galaxy'},
  {name:'Aurora boreal',sample:'KEEP\nDREAMING',font:'righteous',fg:'#dcffe7',bg:'#092a2d',accent:'#29c5a4',backdrop:'aurora',animation:'blur'},
  {name:'Disco fever',sample:'DANCE\nWITH ME',font:'monoton',fg:'#ffea79',bg:'#33104c',accent:'#c53387',backdrop:'mesh',effect:'neon',animation:'orbit'},
  {name:'Cian eléctrico',sample:'MAKE\nSOME NOISE',font:'anton',fg:'#9bfaff',bg:'#09171d',accent:'#08728e',backdrop:'waves',effect:'neon',animation:'bounce'},

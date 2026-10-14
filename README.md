@@ -138,7 +138,8 @@ Actívalo en **Movimiento → Partículas → Particle Galaxy 3D**, o elige
 colores, fondo y textura. Los efectos de contorno/sombra se reservan para los
 estilos clásicos. Prueba un mensaje corto sobre fondo oscuro para apreciar el halo.
 
-Una espiral espacial se reúne en letras con tres capas reales de profundidad:
+Una espiral espacial se reúne en letras con caras frontales, traseras y paredes
+laterales de partículas, también alrededor de los huecos interiores:
 caos inicial, atracción entre aproximadamente 2 y 6 segundos, revelación y órbita
 moderada, y cierre legible. El ciclo completo dura 12 segundos a ritmo normal,
 8,4 en rápido y 17,4 en pausado. En bucle vuelve suavemente a la nube inicial;
@@ -148,20 +149,29 @@ y hacer un clic breve para dispersar/recomponer. En **Ver en grande** también
 funcionan rueda y pellizco; el editor conserva el desplazamiento táctil nativo.
 Los gestos se desactivan durante la entrada, pausa y movimiento reducido.
 
+El preset «Otra galaxia» combina Anton, cian y magenta sobre azul casi negro.
+Órbitas inclinadas, conexiones cristalinas dentro de los trazos, destellos,
+nebulosa procedural y estrellas desenfocadas a distintas profundidades rodean
+el mensaje. La atracción y la dispersión interactiva añaden estelas. Todos esos
+elementos utilizan los colores elegidos y se incluyen en el renderer de exportación;
+la nebulosa reduce su intensidad sobre fondos claros.
+
 **Calidad 3D** ofrece Automática, Ligera y Alta, y **Cámara cinematográfica**
 permite desactivar el recorrido automático. Automática limita el muestreo según
 el tamaño y los núcleos disponibles, sin detectar marcas de dispositivos:
 hasta 9.000 o 14.400 puntos tipográficos. Ligera usa hasta 7.200 y Alta hasta
-18.000, además de un pequeño campo de estrellas. DPR se limita a 1,75 y el lado
+18.000, además de estrellas y polvo orbital con presupuestos proporcionales.
+DPR se limita a 1,75 y el lado
 mayor del canvas a 2.048 píxeles en la vista. Las tres capas y el grosor relativo
 a la fuente mantienen volumen incluso en formatos verticales. La máscara
 canónica de 800 píxeles reutiliza `layoutText`; los puntos desplazados permanecen
 dentro de píxeles opacos, preservando huecos y acentos. Los emojis dependen de
 las fuentes del sistema y se convierten en siluetas, sin conservar su color original.
 
-La escena usa Three.js `Points`, buffers persistentes y un shader radial de
-núcleo/halo, sin luces, texturas remotas ni postprocesado. Tres lotes dibujan
-estrellas, estela y letras. Solo las posiciones se actualizan por fotograma;
+La escena usa Three.js `Points` y `LineSegments`, buffers persistentes y shaders
+procedurales de núcleo/halo, sin luces, texturas remotas ni postprocesado.
+Diez lotes dibujan la atmósfera, órbitas, estelas, letras y destellos. Las posiciones
+y los uniformes se actualizan por fotograma;
 la máscara y los atributos de tamaño/color se construyen una vez por escena.
 Las trayectorias y cámara son funciones del tiempo y de una semilla derivada
 del mensaje. Pausa y pestaña oculta suspenden el reloj; resize conserva su
@@ -202,7 +212,7 @@ sigue siendo una acción explícita con movimiento y miniatura estática.
 
 Dependencias añadidas: `three` 0.186.1 (MIT, licencia en `public/licenses/`),
 `@types/three` y Playwright solo para desarrollo. Vite empaqueta todo localmente.
-Build de referencia: renderer 3D **527,79 kB / 131,62 kB gzip**, cargado únicamente
+Build de referencia: renderer 3D **537,30 kB / 134,47 kB gzip**, cargado únicamente
 al seleccionar o exportar 3D. El JavaScript inicial pasa de 306,84 / 97,91 kB gzip
 a aproximadamente 319 / 102 kB gzip. Vite avisa del tamaño del chunk 3D; se
 mantiene aislado para no descargar Three.js en los estilos clásicos. Las fuentes
@@ -213,7 +223,7 @@ el renderer diferido, sin modificar el build de Pages.
 Pruebas reproducibles:
 
 ```sh
-npm test                 # 47 tests puros, incluidos ocho específicos de Galaxy
+npm test                 # 50 tests puros, incluidos once específicos de Galaxy
 npm run build            # TypeScript y producción
 npx playwright install chromium
 npm run test:browser     # inicia Vite local y comprueba Chromium/WebGL

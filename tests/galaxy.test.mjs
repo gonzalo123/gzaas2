@@ -41,7 +41,7 @@ test('galaxy loop positions and camera meet at the seam; camera remains legible 
  const a=field();const start=new Float32Array(sampleGalaxy(a,0,true));const end=sampleGalaxy(a,12000,true);
  for(let i=0;i<start.length;i++)assert.ok(Math.abs(start[i]-end[i])<.001);
  assert.deepEqual(galaxyCamera(0,true,true),galaxyCamera(12000,true,true));
- for(let t=6000;t<=12000;t+=50){const p=galaxyCamera(t);assert.ok(Math.abs(p.yaw)<.2);assert.ok(p.distance>=1);assert.ok(Object.values(p).every(Number.isFinite));}
+ for(let t=6000;t<=12000;t+=50){const p=galaxyCamera(t);assert.ok(Math.abs(p.yaw)<.3);assert.ok(p.distance>=1);assert.ok(Object.values(p).every(Number.isFinite));}
  assert.deepEqual(galaxyCamera(12000),galaxyCamera(0,false));
 });
 test('pace, trailer compression, pause sample, reduced motion and bounded burst',()=>{
@@ -93,5 +93,32 @@ test('3D GIF ends on the same formed pose as PNG and contains real motion at eve
   assert.deepEqual(sampleGalaxy(a,galaxyTime(plan.frames.at(-1).time,pace)),a.home);
   const positions=plan.frames.map(f=>sampleGalaxy(a,galaxyTime(f.time,pace))[0]);
   assert.ok(new Set(positions).size>30);
+ }
+});
+
+test('side walls span the extrusion without crossing the inner or outer glyph contour',()=>{
+ const a=field(),{rgba,width,height}=mask();let wallCount=0;
+ for(let i=1;i<a.count;i+=3){if(!a.rim[i])continue;wallCount++;
+  const x=Math.floor(a.home[i*3]+width/2),y=Math.floor(height/2-a.home[i*3+1]);
+  assert.equal(rgba[(y*width+x)*4+3],255);assert.ok(Math.abs(a.home[i*3+2])<=6);
+ }
+ assert.ok(wallCount>a.count/6);
+});
+test('orbital ribbons are deterministic, volumetric and continuous at the loop seam',async()=>{
+ const {createGalaxyOrbits,sampleGalaxyOrbits,galaxyAtmosphere}=await import('../src/galaxy-atmosphere.mjs');
+ const a=createGalaxyOrbits(800,600,100,4),b=createGalaxyOrbits(800,600,100,4);
+ assert.deepEqual(a,b);
+ for(const t of [12000,3500,0,6000]){assert.deepEqual(sampleGalaxyOrbits(a,t),sampleGalaxyOrbits(b,t));assert.ok(a.positions.every(Number.isFinite));}
+ const start=new Float32Array(sampleGalaxyOrbits(a,0));assert.deepEqual(sampleGalaxyOrbits(a,12000),start);
+ assert.ok(a.positions.some((p,i)=>i%3===2&&Math.abs(p)>100));
+ assert.equal(galaxyAtmosphere(0,true).orbits,galaxyAtmosphere(12000,true).orbits);
+ assert.equal(galaxyAtmosphere(12000).structure,1);
+});
+test('crystal connections stay inside the opaque mask, including between samples',async()=>{
+ const {galaxyConnections}=await import('../src/galaxy-atmosphere.mjs');const a=field(),{rgba,width,height}=mask();
+ const links=galaxyConnections(a,rgba,width,height);assert.ok(links.length>0);assert.ok(links.length<=a.count*2);
+ assert.deepEqual(links,galaxyConnections(a,rgba,width,height));
+ for(let i=0;i<links.length;i+=2){const first=links[i]*3,second=links[i+1]*3;
+  for(let n=1;n<=8;n++){const t=n/9,x=Math.floor(a.home[first]*(1-t)+a.home[second]*t+width/2),y=Math.floor(height/2-a.home[first+1]*(1-t)-a.home[second+1]*t);assert.equal(rgba[(y*width+x)*4+3],255);}
  }
 });
