@@ -1,0 +1,99 @@
+import {chromium} from 'playwright';
+import {spawn} from 'node:child_process';
+import {mkdir} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import {DEFAULT,encodeState,decodeState} from '../src/state.mjs';
+const base=process.env.TEST_BASE_URL||'http://127.0.0.1:4177';
+const output=process.env.TEST_ARTIFACTS||'/tmp/gzaas-i18n-check';
+const server=process.env.TEST_BASE_URL?null:spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','127.0.0.1','--port','4177','--strictPort'],{stdio:'ignore'});
+let browser;
+try{
+ await mkdir(output,{recursive:true});
+ for(let i=0;i<60;i++){try{await fetch(base);break;}catch{await new Promise(r=>setTimeout(r,100));}}
+ browser=await chromium.launch({executablePath:process.env.CHROME_PATH||undefined,headless:true});
+ const errors=[];
+ const page=await browser.newPage({locale:'en-GB',viewport:{width:1200,height:850},reducedMotion:'reduce'});
+ page.on('pageerror',e=>errors.push(e.message));
+ await page.addInitScript(()=>Math.random=()=>0);
+ await page.goto(base);
+ assert.equal(await page.locator('html').getAttribute('lang'),'en');
+ assert.equal(await page.getByRole('combobox',{name:'Language',exact:true}).inputValue(),'en');
+ assert.equal(await page.evaluate(()=>localStorage.getItem('gzaas.locale')),null);
+ assert.equal(await page.locator('.landing-tagline .sr-only').textContent(),'Your words. Full screen.');
+ await page.screenshot({path:output+'/landing-en.png'});
+ const message='¡Hola!\n世界 👩🏽‍🚀';
+ await page.getByRole('textbox',{name:'Your message',exact:true}).fill(message);
+ await page.getByRole('combobox',{name:'Language',exact:true}).selectOption('es');
+ assert.equal(await page.getByRole('textbox',{name:'Tu mensaje',exact:true}).inputValue(),message);
+ assert.equal(await page.evaluate(()=>localStorage.getItem('gzaas.locale')),'es');
+ await page.reload();assert.equal(await page.locator('html').getAttribute('lang'),'es');
+ await page.getByRole('combobox',{name:'Idioma',exact:true}).selectOption('en');
+ await page.getByRole('textbox',{name:'Your message',exact:true}).fill(message);
+ await page.getByRole('button',{name:'gzaas it!',exact:true}).click();await page.locator('.edit-app').waitFor();await page.waitForTimeout(250);
+ const hash=new URL(page.url()).hash;
+ await page.getByRole('combobox',{name:'Language',exact:true}).selectOption('es');await page.waitForTimeout(250);
+ assert.equal(new URL(page.url()).hash,hash,'language is never serialized into the poster');
+ assert.equal(await page.locator('#message').inputValue(),message);
+ await page.getByRole('combobox',{name:'Idioma',exact:true}).selectOption('en');
+ for(const tab of ['Text','Styles','Design','Backgrounds','Motion']){
+  await page.getByRole('tab',{name:tab,exact:true}).click();
+  const text=await page.locator('#editor-panel').innerText();
+  assert.ok(!/Intensidad|Colección|Tipografía|Color del texto|Animar el fondo|En bucle|Ritmo/.test(text),text);
+ }
+ await page.getByRole('tab',{name:'Styles',exact:true}).click();assert.equal(await page.locator('.style-name').first().textContent(),'Turn it up');
+ await page.getByRole('tab',{name:'Design',exact:true}).click();await page.locator('#font').click();await page.getByRole('heading',{name:'Choose your message’s voice.'}).waitFor();await page.getByRole('button',{name:'Close typefaces'}).click();
+ await page.getByRole('tab',{name:'Motion',exact:true}).click();await page.getByRole('button',{name:'Trailer ✦',exact:true}).click();
+ assert.ok((await page.locator('.trailer-storyboard-heading').innerText()).includes('scenes'));
+ await page.screenshot({path:output+'/editor-en.png'});
+ await page.getByRole('button',{name:'Download message',exact:true}).click();
+ await page.getByRole('heading',{name:'Keep it moving.'}).waitFor();
+ await page.getByRole('button',{name:'PNG An image to keep.'}).click();
+ const downloaded=page.waitForEvent('download');await page.getByRole('button',{name:'Download PNG',exact:true}).click();assert.equal((await downloaded).suggestedFilename(),'gzaas.png');
+ await page.getByRole('button',{name:'Share',exact:true}).click();await page.getByRole('heading',{name:'Take your message out there.'}).waitFor();
+ await page.locator('.share-preview img').waitFor();assert.equal(await page.locator('.share-preview img').getAttribute('alt'),message);await page.screenshot({path:output+'/share-en.png'});
+ await page.getByRole('button',{name:'Close sharing'}).click();
+ await page.getByRole('button',{name:'View full screen',exact:true}).click();await page.mouse.move(100,100);
+ await page.getByRole('combobox',{name:'Language',exact:true}).selectOption('es');
+ assert.equal(await page.locator('html').getAttribute('lang'),'es');
+ await page.getByRole('button',{name:'Crear mi versión',exact:true}).waitFor();
+ // Regional Spanish is detected even when English was saved in another context.
+ const spanish=await browser.newPage({locale:'es-MX'});await spanish.goto(base);assert.equal(await spanish.locator('html').getAttribute('lang'),'es');await spanish.close();
+ // Unsupported browser languages fall back to English; broken links localize too.
+ const fallback=await browser.newPage({locale:'fr-FR'});await fallback.goto(base+'/#broken');assert.equal(await fallback.locator('html').getAttribute('lang'),'en');
+ assert.equal(await fallback.getByRole('alert').innerText(),'This link is incomplete or unsupported.');
+ await fallback.getByRole('combobox',{name:'Language',exact:true}).selectOption('es');assert.equal(await fallback.getByRole('alert').innerText(),'Este enlace está incompleto o no es compatible.');await fallback.close();
+ // A denied localStorage getter must not prevent switching language in memory.
+ const blocked=await browser.newPage({locale:'es-ES'});await blocked.addInitScript(()=>Object.defineProperty(window,'localStorage',{get(){throw new DOMException('Denied','SecurityError');}}));
+ await blocked.goto(base);await blocked.getByRole('combobox',{name:'Idioma',exact:true}).selectOption('en');assert.equal(await blocked.locator('html').getAttribute('lang'),'en');await blocked.close();
+ // On mobile, the selector and translated controls must fit the editor header.
+ const mobile=await browser.newPage({locale:'en-US',viewport:{width:320,height:640},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
+ await mobile.goto(base);await mobile.screenshot({path:output+'/mobile-landing-en.png'});
+ await mobile.getByRole('textbox',{name:'Your message',exact:true}).fill('Make it big');await mobile.getByRole('button',{name:'gzaas it!'}).click();await mobile.locator('.edit-app').waitFor();
+ assert.ok(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ assert.ok(await mobile.locator('.topbar .share-button').evaluate(e=>e.getBoundingClientRect().right<=innerWidth),'share stays inside the mobile header');
+ assert.ok(await mobile.locator('.editor-tabs button').evaluateAll(buttons=>buttons.every(b=>b.scrollWidth<=b.clientWidth)),'tab labels fit');
+ await mobile.getByRole('combobox',{name:'Language',exact:true}).selectOption('es');await mobile.screenshot({path:output+'/mobile-editor-es.png'});
+ assert.ok(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ assert.ok(await mobile.locator('.topbar .share-button').evaluate(e=>e.getBoundingClientRect().right<=innerWidth),'share stays inside the mobile header');
+ assert.ok(await mobile.locator('.editor-tabs button').evaluateAll(buttons=>buttons.every(b=>b.scrollWidth<=b.clientWidth)),'tab labels fit');await mobile.close();
+ // A shared message opens unchanged in a different recipient's UI language.
+ const recipient=await browser.newPage({locale:'en-US',reducedMotion:'reduce'});
+ const shared={...DEFAULT,text:message,animation:'none'};await recipient.goto(base+'/'+encodeState(shared));
+ assert.deepEqual(decodeState(new URL(recipient.url()).hash),shared);assert.equal(await recipient.locator('html').getAttribute('lang'),'en');await recipient.close();
+ // Switching locale mid-typewriter replaces its clock and keeps the draft.
+ const animated=await browser.newPage({locale:'en-US',viewport:{width:390,height:844}});
+ animated.on('pageerror',e=>errors.push(e.message));await animated.goto(base);
+ await animated.getByRole('textbox',{name:'Your message',exact:true}).fill('My draft');
+ await animated.getByRole('combobox',{name:'Language',exact:true}).selectOption('es');
+ await animated.waitForTimeout(120);
+ await animated.getByRole('combobox',{name:'Idioma',exact:true}).selectOption('en');
+ await animated.waitForTimeout(3600);
+ assert.equal(await animated.locator('.landing-tagline .sr-only').textContent(),'Your words. Full screen.');
+ assert.ok(await animated.locator('.landing-type-char').evaluateAll(chars=>chars.every(c=>getComputedStyle(c).visibility==='visible')));
+ assert.equal(await animated.locator('.landing-type-caret').count(),1);
+ assert.equal(await animated.locator('.landing-type-caret').getAttribute('data-visible'),'false');
+ assert.equal(await animated.getByRole('textbox',{name:'Your message',exact:true}).inputValue(),'My draft');await animated.close();
+ await page.close();assert.deepEqual(errors,[]);
+ console.log('PASS: browser language, preference persistence, live switching, unmodified messages/links, editor, dialogs, PNG, viewer, mobile, translated errors and blocked storage.');
+ console.log(`Artifacts: ${output}`);
+}finally{await browser?.close();server?.kill();}

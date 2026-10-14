@@ -2,8 +2,8 @@ export function publicShareUrl(url) {
  try {const parsed=new URL(url);return ['https:','http:'].includes(parsed.protocol)?parsed.href:'';} catch {return '';}
 }
 
-export function fileShareData(file,url) {
- const data={files:[file],title:'Un mensaje para ti — gzaas!'};
+export function fileShareData(file,url,title='Un mensaje para ti — gzaas!') {
+ const data={files:[file],title};
  const link=publicShareUrl(url);
  if(link)data.text=link;
  return data;

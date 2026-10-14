@@ -1,3 +1,4 @@
+import {useI18n} from './useI18n';
 import {isParticle} from './particles.mjs';
 import {useEffect,useMemo,useRef,useState,type ComponentType,type CSSProperties} from 'react';
 import {buildTrailer,trailerPosition} from './trailer.mjs';
@@ -5,6 +6,7 @@ import {waitFonts} from './render';
 import type {StageProps} from './PosterStage';
 
 export function TrailerStage({state,paused=false,onError,onPlay,SceneRenderer}:{state:StageProps['state'];paused?:boolean;onError?:StageProps['onError'];onPlay?:()=>void;SceneRenderer:ComponentType<StageProps>}) {
+ const {t}=useI18n();
  const plan=useMemo(()=>buildTrailer(state),[state]);
  const [frame,setFrame]=useState({index:0,cycle:0,seek:0}),[ready,setReady]=useState(false);
  const [reduced,setReduced]=useState(()=>matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -52,7 +54,7 @@ export function TrailerStage({state,paused=false,onError,onPlay,SceneRenderer}:{
   <div className="trailer-scene" ref={shell} aria-hidden="true" key={`${frame.index}:${frame.cycle}:${frame.seek}`}>
    <SceneRenderer state={scene.state} particleDuration={scene.duration} particleClock={particleClock} paused={paused||hidden||!ready} onError={onError}/>
   </div>
-  <div className="trailer-navigation" role="group" aria-label="Escenas del tráiler">{plan.scenes.map((s,i)=><button key={i} className={frame.index===i?'active':''} aria-pressed={frame.index===i} aria-label={s.final?'Ver mensaje completo':`Ver escena ${i+1}: ${s.state.text}`} title={s.final?'Mensaje completo':s.state.text} onClick={()=>seek(i)}>{s.final?'✦':i+1}</button>)}</div>
+  <div className="trailer-navigation" role="group" aria-label={t("Escenas del tráiler")}>{plan.scenes.map((s,i)=><button key={i} className={frame.index===i?'active':''} aria-pressed={frame.index===i} aria-label={s.final?t("Ver mensaje completo"):t('Ver escena {number}: {text}',{number:i+1,text:s.state.text})} title={s.final?t("Mensaje completo"):s.state.text} onClick={()=>seek(i)}>{s.final?'✦':i+1}</button>)}</div>
   <div className="trailer-progress" aria-hidden="true"><div ref={progress}/></div>
  </div>;
 }

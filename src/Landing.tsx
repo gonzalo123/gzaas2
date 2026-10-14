@@ -1,3 +1,4 @@
+import {useI18n} from './useI18n';
 import {useEffect,useLayoutEffect,useRef,useState,type CSSProperties} from 'react';
 import {Backdrop} from './Backdrop';
 import {DEFAULT,MAX_TEXT} from './state.mjs';
@@ -8,10 +9,9 @@ const entrances=[
  {id:'lilac',animation:'bounce',backdrop:'aurora',bg:'#fcfaff',fg:'#5943b8',accent:'#dacefa',button:'#5943b8',font:'"DM Serif Display", serif',weight:400,italic:'normal'},
  {id:'tide',animation:'orbit',backdrop:'waves',bg:'#f7fbf8',fg:'#12665d',accent:'#b8e4d2',button:'#12665d',font:'"Space Grotesk", sans-serif',weight:700,italic:'normal'},
 ];
-const tagline='Tus mensajes, a toda pantalla.';
-const taglineWords=Array.from(tagline.matchAll(/\S+/g),match=>({text:match[0],offset:match.index}));
 
-function TypewriterTagline(){
+function TypewriterTagline({tagline}:{tagline:string}){
+ const taglineWords=Array.from(tagline.matchAll(/\S+/g),match=>({text:match[0],offset:match.index}));
  const [frame,setFrame]=useState(()=>({count:matchMedia('(prefers-reduced-motion: reduce)').matches?tagline.length:0,cursor:false}));
  useEffect(()=>{
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
@@ -36,7 +36,7 @@ function TypewriterTagline(){
    tick();
   },()=>{if(!stopped)finish();});
   return()=>{stopped=true;clearTimeout(timer);reduced.removeEventListener('change',preference);};
- },[]);
+ },[tagline]);
  const cursorIndex=Math.max(0,tagline.slice(0,frame.count).trimEnd().length-1);
  return <p className="landing-tagline">
   <span className="sr-only">{tagline}</span>
@@ -50,6 +50,7 @@ function TypewriterTagline(){
 }
 
 export function Landing({draft,error,onDraft,onCreate}:{draft:string;error:string;onDraft:(text:string)=>void;onCreate:()=>void}){
+ const {t,locale}=useI18n();
  const [entrance]=useState(()=>entrances[Math.floor(Math.random()*entrances.length)]);
  const [settled,setSettled]=useState(false),[focused,setFocused]=useState(false);
  const inputRef=useRef<HTMLTextAreaElement>(null);
@@ -73,16 +74,16 @@ export function Landing({draft,error,onDraft,onCreate}:{draft:string;error:strin
    <h1 className={`landing-logo motion-${entrance.animation}`} aria-label="gzaas!">
     <span className="landing-word" aria-hidden="true">{Array.from('gzaas!').map((letter,i)=><span key={i} className="motion-unit" style={{animationDelay:`${i*.075}s`}}>{letter}</span>)}</span>
    </h1>
-   <TypewriterTagline/>
+   <TypewriterTagline key={locale} tagline={t('Tus mensajes, a toda pantalla.')}/>
    <form className="landing-form" onSubmit={e=>{e.preventDefault();onCreate();}}>
-    <label className="sr-only" htmlFor="landing-message">Tu mensaje</label>
+    <label className="sr-only" htmlFor="landing-message">{t("Tu mensaje")}</label>
     <div className="landing-composer">
-     <textarea id="landing-message" ref={inputRef} rows={2} value={draft} placeholder="Algo que merezca verse en grande…" aria-invalid={!!error} aria-describedby={error?'landing-error':undefined} onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)} onChange={e=>onDraft([...e.target.value].slice(0,MAX_TEXT).join(''))} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();if(draft.trim())onCreate();}}} spellCheck={false}/>
+     <textarea id="landing-message" ref={inputRef} rows={2} value={draft} placeholder={t("Algo que merezca verse en grande…")} aria-invalid={!!error} aria-describedby={error?'landing-error':undefined} onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)} onChange={e=>onDraft([...e.target.value].slice(0,MAX_TEXT).join(''))} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();if(draft.trim())onCreate();}}} spellCheck={false}/>
      <div className="landing-actions">
       <button className="landing-submit" type="submit" disabled={!draft.trim()}>gzaas it! <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></button>
      </div>
     </div>
-    {error&&<p id="landing-error" className="field-error" role="alert">{error}</p>}
+    {error&&<p id="landing-error" className="field-error" role="alert">{t(error)}</p>}
    </form>
   </main>
  </>;

@@ -1,0 +1,19 @@
+.language-selector{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;color:#545c52;cursor:pointer;font-style:normal}
+.language-selector>svg{width:16px;height:16px;pointer-events:none}
+.language-current{display:none}
+.language-selector select{width:auto;min-height:36px;border:1px solid transparent;border-radius:6px;background:transparent;color:inherit;padding:5px 2px;font-size:12px;font-weight:500;cursor:pointer}
+.language-selector select:hover{background:#80808010}
+.landing-language{position:absolute;right:24px;top:19px;z-index:1}
+.viewer-language{position:fixed;top:12px;left:18px;z-index:3;color:#fff;background:#242924df;padding:2px 8px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .3s}
+.viewer-language select option{color:#242724;background:#fff}
+.controls-visible .viewer-language,.viewer-language:focus-within{opacity:1;pointer-events:auto}
+@media(max-width:760px){
+ .landing-language{top:12px;right:16px}
+ .edit-app .editor-actions .language-selector{position:relative;gap:0;min-width:40px;min-height:34px;justify-content:center;border-radius:5px}
+ .edit-app .editor-actions .language-selector>svg{display:none}
+ .edit-app .editor-actions .language-current{display:inline-flex;gap:3px;font-size:11px;pointer-events:none}
+ .edit-app .editor-actions .language-selector select{position:absolute;inset:0;opacity:0;width:100%;max-width:none;padding:0}
+ .edit-app .editor-actions .language-selector:focus-within{outline:3px solid #5646e9;outline-offset:1px}
+}
+.editor-tabs button{flex:1 1 auto}
+@media(max-width:370px){.edit-app .topbar{gap:8px}.edit-app .editor-actions{gap:4px}.edit-app .editor-actions .share-button span{display:none}.edit-app .editor-actions .share-button{width:34px;padding:7px}}

@@ -1,3 +1,4 @@
+import {useI18n} from './useI18n';
 import {useEffect,useRef,useState} from 'react';
 import {exportGif} from './export-gif';
 import type {Poster} from './render';
@@ -5,6 +6,7 @@ import {exportDimensions,exportPlan} from './export-plan.mjs';
 import {canShareFile,fileShareData,publicShareUrl} from './share-file.mjs';
 
 export function ExportDialog({state,ratio,shareUrl,onPNG,onClose}:{state:Poster;ratio:string;shareUrl:string;onPNG:()=>Promise<void>;onClose:()=>void}){
+ const {t,number}=useI18n();
  const [url]=useState(shareUrl),[feedback,setFeedback]=useState(''),[sharing,setSharing]=useState(false);
  const dialog=useRef<HTMLDialogElement>(null),job=useRef<AbortController|null>(null),objectUrl=useRef('');
  const [format,setFormat]=useState(state.animation==='none'&&(!state.backdropMotion||state.backdrop==='solid')?'png':'gif'),[busy,setBusy]=useState(false),[progress,setProgress]=useState(0),[error,setError]=useState('');
@@ -30,30 +32,30 @@ export function ExportDialog({state,ratio,shareUrl,onPNG,onClose}:{state:Poster;
  function cancel(){job.current?.abort();job.current=null;setBusy(false);setProgress(0);}
  async function shareGif(){
   if(!result)return;setError('');setSharing(true);
-  try{await navigator.share(fileShareData(result.file,url));}
+  try{await navigator.share(fileShareData(result.file,url,t('Un mensaje para ti — gzaas!')));}
   catch(e){if((e as Error).name!=='AbortError')setError('Puedes descargar el GIF y copiar el enlace para compartirlos.');}
   finally{setSharing(false);}
  }
  async function copyLink(){try{await navigator.clipboard.writeText(url);setFeedback('Enlace copiado.');}catch{setError('Abre «Compartir» para seleccionar y copiar el enlace.');}}
  return <dialog ref={dialog} className="export-dialog" aria-labelledby="export-title" onCancel={e=>{e.preventDefault();onClose();}} onClick={e=>{if(e.target===dialog.current)onClose();}}>
-  <div className="dialog-header"><span className="eyebrow">LLÉVATE TU MENSAJE</span><button className="icon-button" aria-label="Cerrar descarga" onClick={onClose}>×</button></div>
-  <h2 id="export-title">Que siga moviéndose<span>.</span></h2>
+  <div className="dialog-header"><span className="eyebrow">{t("LLÉVATE TU MENSAJE")}</span><button className="icon-button" aria-label={t("Cerrar descarga")} onClick={onClose}>×</button></div>
+  <h2 id="export-title">{t("Que siga moviéndose")}<span>.</span></h2>
   {result?<>
    <div className="export-result"><img src={reduced?result.thumbnail:result.url} alt={state.text}/></div>
-   <p className="export-details" role="status">Tu GIF está listo · {(result.bytes/1024/1024).toFixed(1)} MB</p>
+   <p className="export-details" role="status">{t("Tu GIF está listo ·")} {number(result.bytes/1024/1024,1)} MB</p>
    <div className="export-share-actions">
-    <a className={`button ${canShareFile(result.file)?'secondary':'primary'}`} href={result.url} download="gzaas.gif">Descargar GIF</a>
-    {canShareFile(result.file)&&<button className="button primary" disabled={sharing} onClick={()=>void shareGif()}>{publicShareUrl(url)?'Compartir GIF + enlace':'Compartir GIF'}</button>}
+    <a className={`button ${canShareFile(result.file)?'secondary':'primary'}`} href={result.url} download="gzaas.gif">{t("Descargar GIF")}</a>
+    {canShareFile(result.file)&&<button className="button primary" disabled={sharing} onClick={()=>void shareGif()}>{publicShareUrl(url)?t("Compartir GIF + enlace"):t("Compartir GIF")}</button>}
    </div>
-   {publicShareUrl(url)&&<button className="text-button export-copy" onClick={()=>void copyLink()}>Copiar enlace</button>}
-   {feedback&&<p className="export-details" role="status">{feedback}</p>}
+   {publicShareUrl(url)&&<button className="text-button export-copy" onClick={()=>void copyLink()}>{t("Copiar enlace")}</button>}
+   {feedback&&<p className="export-details" role="status">{t(feedback)}</p>}
   </>:<>
-   <div className="export-formats" role="group" aria-label="Formato de descarga">{[['png','PNG','Una imagen para guardar.'],['gif','GIF','Toda la actitud, en movimiento.']].map(([id,name,description])=><button key={id} disabled={busy} aria-pressed={format===id} className={format===id?'selected':''} onClick={()=>{setFormat(id);setError('');}}><strong>{name}</strong><span>{description}</span></button>)}</div>
-   <p className="export-details">{format==='gif'?`${width} × ${height} · ${(duration/1000).toFixed(1)} s · ${state.repeat?'En bucle':'Una vez'}`:'El mensaje completo, en alta resolución.'}</p>
-   {busy?format==='gif'?<div className="export-progress"><div><span>Creando tu GIF…</span><strong>{progress}%</strong></div><progress value={progress} max={100} aria-label="Progreso de la exportación"/><button className="button secondary" onClick={cancel}>Cancelar</button></div>:<p role="status">Preparando imagen…</p>:<button className="button primary" onClick={()=>void generate()}>{format==='gif'?'Crear GIF':'Descargar PNG'}</button>}
-   {(state.animation==='particle-galaxy'||state.animation==='trailer'&&state.trailerGalaxy)&&<p className="export-local">Exportación 3D real. Requiere WebGL; los gestos no se graban.</p>}
-   <p className="export-local">Tu mensaje se convierte aquí, en tu navegador.</p>
+   <div className="export-formats" role="group" aria-label={t("Formato de descarga")}>{[['png','PNG',t("Una imagen para guardar.")],['gif','GIF',t("Toda la actitud, en movimiento.")]].map(([id,name,description])=><button key={id} disabled={busy} aria-pressed={format===id} className={format===id?'selected':''} onClick={()=>{setFormat(id);setError('');}}><strong>{name}</strong><span>{description}</span></button>)}</div>
+   <p className="export-details">{format==='gif'?`${width} × ${height} · ${number(duration/1000,1)} s · ${state.repeat?t("En bucle"):t("Una vez")}`:t("El mensaje completo, en alta resolución.")}</p>
+   {busy?format==='gif'?<div className="export-progress"><div><span>{t("Creando tu GIF…")}</span><strong>{progress}%</strong></div><progress value={progress} max={100} aria-label={t("Progreso de la exportación")}/><button className="button secondary" onClick={cancel}>{t("Cancelar")}</button></div>:<p role="status">{t("Preparando imagen…")}</p>:<button className="button primary" onClick={()=>void generate()}>{format==='gif'?t("Crear GIF"):t("Descargar PNG")}</button>}
+   {(state.animation==='particle-galaxy'||state.animation==='trailer'&&state.trailerGalaxy)&&<p className="export-local">{t("Exportación 3D real. Requiere WebGL; los gestos no se graban.")}</p>}
+   <p className="export-local">{t("Tu mensaje se convierte aquí, en tu navegador.")}</p>
   </>}
-  {error&&<p className="field-error" role="alert">{error}</p>}
+  {error&&<p className="field-error" role="alert">{t(error)}</p>}
  </dialog>;
 }

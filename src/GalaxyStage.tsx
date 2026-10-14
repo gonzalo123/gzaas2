@@ -1,3 +1,4 @@
+import {useI18n} from './useI18n';
 import {useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {ParticleStage} from './ParticleStage';
 import {waitFonts,type Poster} from './render';
@@ -6,6 +7,7 @@ import type {createGalaxyRenderer} from './galaxy-renderer';
 
 type Props={state:Poster;width:number;height:number;paused:boolean;replay:number;particleDuration?:number;particleClock?:()=>number;onError?:(message:string)=>void};
 export function GalaxyStage({state,width,height,paused,replay,particleDuration,particleClock,onError}:Props){
+ const {t}=useI18n();
  const canvas=useRef<HTMLDivElement>(null),pausedRef=useRef(paused),refresh=useRef(()=>{});
  const playback=useRef({state,replay,elapsed:0});
  const [fallback,setFallback]=useState(false),[ready,setReady]=useState(false);
@@ -95,6 +97,6 @@ export function GalaxyStage({state,width,height,paused,replay,particleDuration,p
  useLayoutEffect(()=>refresh.current(),[paused]);
  return <><div ref={canvas} className="galaxy-layer" style={{visibility:fallback?'hidden':'visible'}} aria-hidden="true"/>
   {(!ready||fallback)&&<ParticleStage state={fallbackState} width={width} height={height} paused={!ready||paused} replay={replay} particleDuration={particleDuration} particleClock={particleClock} onError={onError}/>}
-  {fallback&&<span className="galaxy-fallback" role="status">Vista 2D · WebGL no disponible</span>}
+  {fallback&&<span className="galaxy-fallback" role="status">{t("Vista 2D · WebGL no disponible")}</span>}
  </>;
 }

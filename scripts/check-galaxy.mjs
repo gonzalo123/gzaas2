@@ -16,7 +16,7 @@ const errors=[];
 try{
  for(let i=0;i<100;i++){try{await fetch(base);break;}catch{await new Promise(r=>setTimeout(r,100));}}
  browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||undefined,args:process.env.CI?['--enable-unsafe-swiftshader']:[]});
- const page=await browser.newPage({viewport:{width:1200,height:850}});
+ const page=await browser.newPage({locale:'es-ES',viewport:{width:1200,height:850}});
  page.setDefaultTimeout(15000);
  page.on('pageerror',e=>errors.push(e.message));
  const requests=[];page.on('request',r=>requests.push(r.url()));
@@ -26,10 +26,10 @@ try{
  await page.waitForFunction(()=>document.querySelectorAll('.particle-canvas').length===1&&!!document.querySelector('.galaxy-canvas')&&!document.querySelector('.galaxy-fallback'));
  await page.waitForTimeout(1200);
  await page.getByRole('button',{name:'Pausar animación',exact:true}).click();
- const paused=await page.locator('.galaxy-canvas').screenshot({style:'.viewer-bar,.origin-credit {visibility:hidden!important}'});await page.waitForTimeout(300);
- assert.ok((await page.locator('.galaxy-canvas').screenshot({style:'.viewer-bar,.origin-credit {visibility:hidden!important}'})).equals(paused),'pause freezes pixels');
+ const paused=await page.locator('.galaxy-canvas').screenshot({style:'.viewer-bar,.viewer-language,.origin-credit {visibility:hidden!important}'});await page.waitForTimeout(300);
+ assert.ok((await page.locator('.galaxy-canvas').screenshot({style:'.viewer-bar,.viewer-language,.origin-credit {visibility:hidden!important}'})).equals(paused),'pause freezes pixels');
  await page.getByRole('button',{name:'Reanudar animación',exact:true}).click();await page.waitForTimeout(300);
- assert.ok(!(await page.locator('.galaxy-canvas').screenshot({style:'.viewer-bar,.origin-credit {visibility:hidden!important}'})).equals(paused),'resume moves');
+ assert.ok(!(await page.locator('.galaxy-canvas').screenshot({style:'.viewer-bar,.viewer-language,.origin-credit {visibility:hidden!important}'})).equals(paused),'resume moves');
  await page.getByRole('button',{name:'Repetir animación',exact:true}).click();
  await page.waitForTimeout(300);assert.equal(await page.locator('.galaxy-fallback').count(),0,'replay keeps WebGL alive');
  await page.getByRole('tab',{name:'Movimiento',exact:true}).click();
@@ -60,20 +60,20 @@ try{
  // Real viewer interaction: drag must not trigger a burst; click must reconstruct.
  console.log('Checking viewer gestures…');await page.goto(url());await page.waitForTimeout(11000);
  const canvas=page.locator('.galaxy-canvas'),box=await canvas.boundingBox(),cx=box.x+box.width*.5,cy=box.y+box.height*.5;
- const hold=await canvas.screenshot({style:'.viewer-bar,.origin-credit {visibility:hidden!important}'});await page.mouse.move(cx,cy);await page.mouse.down();await page.mouse.move(cx+50,cy+20,{steps:10});await page.mouse.up();await page.waitForTimeout(400);
- assert.ok(!(await canvas.screenshot({style:'.viewer-bar,.origin-credit {visibility:hidden!important}'})).equals(hold),'drag changes camera');
- const drag=await canvas.screenshot({style:'.viewer-bar,.origin-credit {visibility:hidden!important}'});await page.mouse.wheel(0,150);await page.waitForTimeout(1200);assert.ok(!(await canvas.screenshot({style:'.viewer-bar,.origin-credit {visibility:hidden!important}'})).equals(drag),'wheel zoom');
- const zoom=await canvas.screenshot({style:'.viewer-bar,.origin-credit {visibility:hidden!important}'});await page.mouse.click(cx,cy);await page.waitForTimeout(900);assert.ok(!(await canvas.screenshot({style:'.viewer-bar,.origin-credit {visibility:hidden!important}'})).equals(zoom),'tap disperses');await page.waitForTimeout(3500);
- const reformed=await canvas.screenshot({style:'.viewer-bar,.origin-credit {visibility:hidden!important}'});await writeFile(output+'/before-tap.png',zoom);await writeFile(output+'/after-tap.png',reformed);assert.ok(reformed.equals(zoom),'tap reforms the same pose');
+ const hold=await canvas.screenshot({style:'.viewer-bar,.viewer-language,.origin-credit {visibility:hidden!important}'});await page.mouse.move(cx,cy);await page.mouse.down();await page.mouse.move(cx+50,cy+20,{steps:10});await page.mouse.up();await page.waitForTimeout(400);
+ assert.ok(!(await canvas.screenshot({style:'.viewer-bar,.viewer-language,.origin-credit {visibility:hidden!important}'})).equals(hold),'drag changes camera');
+ const drag=await canvas.screenshot({style:'.viewer-bar,.viewer-language,.origin-credit {visibility:hidden!important}'});await page.mouse.wheel(0,150);await page.waitForTimeout(1200);assert.ok(!(await canvas.screenshot({style:'.viewer-bar,.viewer-language,.origin-credit {visibility:hidden!important}'})).equals(drag),'wheel zoom');
+ const zoom=await canvas.screenshot({style:'.viewer-bar,.viewer-language,.origin-credit {visibility:hidden!important}'});await page.mouse.click(cx,cy);await page.waitForTimeout(900);assert.ok(!(await canvas.screenshot({style:'.viewer-bar,.viewer-language,.origin-credit {visibility:hidden!important}'})).equals(zoom),'tap disperses');await page.waitForTimeout(3500);
+ const reformed=await canvas.screenshot({style:'.viewer-bar,.viewer-language,.origin-credit {visibility:hidden!important}'});await writeFile(output+'/before-tap.png',zoom);await writeFile(output+'/after-tap.png',reformed);assert.ok(reformed.equals(zoom),'tap reforms the same pose');
  // Context loss restores the original mounted renderer and shows 2D meanwhile.
  await page.evaluate(()=>{const gl=document.querySelector('.galaxy-canvas').getContext('webgl2');window.loss=gl.getExtension('WEBGL_lose_context');window.loss.loseContext();});
  await page.getByText('Vista 2D · WebGL no disponible').waitFor();
  await page.evaluate(()=>window.loss.restoreContext());await page.waitForFunction(()=>!document.querySelector('.galaxy-fallback'));await page.waitForTimeout(300);
  await page.mouse.move(20,20);await page.getByRole('button',{name:'Pausar animación',exact:true}).click();
- const pausedBeforeLoss=await canvas.screenshot({style:'.viewer-bar,.origin-credit {visibility:hidden!important}'});
+ const pausedBeforeLoss=await canvas.screenshot({style:'.viewer-bar,.viewer-language,.origin-credit {visibility:hidden!important}'});
  await page.evaluate(()=>window.loss.loseContext());await page.getByText('Vista 2D · WebGL no disponible').waitFor();
  await page.evaluate(()=>window.loss.restoreContext());await page.waitForFunction(()=>!document.querySelector('.galaxy-fallback'));
- assert.ok((await canvas.screenshot({style:'.viewer-bar,.origin-credit {visibility:hidden!important}'})).equals(pausedBeforeLoss),'paused context restores without needing another RAF');
+ assert.ok((await canvas.screenshot({style:'.viewer-bar,.viewer-language,.origin-credit {visibility:hidden!important}'})).equals(pausedBeforeLoss),'paused context restores without needing another RAF');
  console.log('PASS: drag, zoom, deliberate tap/reform, context loss/restoration including pause');
  const trailer={...state,text:'UNO\nDOS',animation:'trailer',trailerGalaxy:true,trailerMix:true};
  await page.goto(url(trailer,true));await page.waitForTimeout(400);
@@ -83,14 +83,14 @@ try{
  await page.getByRole('button',{name:'Ver escena 1: UNO',exact:true}).click();assert.equal(await page.locator('.trailer-stage').getAttribute('data-scene'),'0');
  await page.evaluate(async state=>{const {exportGif}=await import('/src/export-gif.ts');const result=await exportGif(state,'portrait',new AbortController().signal,()=>{});if(!result.blob.size)throw Error('empty mixed GIF');},trailer);
  console.log('PASS: mixed trailer seeking, pause, export');
- const reduced=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
+ const reduced=await browser.newPage({locale:'es-ES',viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
  await reduced.goto(url());await reduced.waitForFunction(()=>document.querySelectorAll('.particle-canvas').length===1);await reduced.waitForTimeout(250);
- const still=await reduced.locator('.galaxy-canvas').screenshot({style:'.viewer-bar,.origin-credit {visibility:hidden!important}'});await reduced.touchscreen.tap(190,300);await reduced.waitForTimeout(200);assert.ok((await reduced.locator('.galaxy-canvas').screenshot({style:'.viewer-bar,.origin-credit {visibility:hidden!important}'})).equals(still),'reduced motion ignores taps');
+ const still=await reduced.locator('.galaxy-canvas').screenshot({style:'.viewer-bar,.viewer-language,.origin-credit {visibility:hidden!important}'});await reduced.touchscreen.tap(190,300);await reduced.waitForTimeout(200);assert.ok((await reduced.locator('.galaxy-canvas').screenshot({style:'.viewer-bar,.viewer-language,.origin-credit {visibility:hidden!important}'})).equals(still),'reduced motion ignores taps');
  await reduced.screenshot({path:output+'/reduced-mobile.png'});
  await reduced.goto(url({...state,text:'¡ÓRBITA!\n👩🏽‍🚀\nEl futuro empieza aquí.'},true));await reduced.getByRole('tab',{name:'Movimiento',exact:true}).click();await reduced.waitForTimeout(300);
  assert.ok(await reduced.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await reduced.screenshot({path:output+'/editor-mobile.png'});
  await reduced.setViewportSize({width:320,height:640});await reduced.waitForTimeout(300);assert.equal(await reduced.locator('.galaxy-fallback').count(),0,'resize keeps WebGL alive');await reduced.screenshot({path:output+'/editor-small.png'});await reduced.close();
- const fallback=await browser.newPage();await fallback.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type.startsWith('webgl')?null:original.call(this,type,...args);};});
+ const fallback=await browser.newPage({locale:'es-ES'});await fallback.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type.startsWith('webgl')?null:original.call(this,type,...args);};});
  await fallback.goto(url());await fallback.getByText('Vista 2D · WebGL no disponible').waitFor();
  const failures=await fallback.evaluate(async state=>{const {paint}=await import('/src/render.ts');const {exportGif}=await import('/src/export-gif.ts');const failures=[];for(const run of [()=>paint(document.createElement('canvas'),state,640,480),()=>exportGif(state,'square',new AbortController().signal,()=>{})])try{await run();}catch(e){failures.push(e.message);}return failures;},state);
  assert.equal(failures.length,2);assert.ok(failures.every(f=>f.includes('WebGL')));await fallback.close();

@@ -14,7 +14,7 @@ try{
  browser=await chromium.launch({executablePath:process.env.CHROME_PATH||undefined,headless:true});
  const errors=[];
  for(const [index,random] of [0,.4,.8].entries()){
-  const page=await browser.newPage({viewport:{width:976,height:571}});
+  const page=await browser.newPage({locale:'es-ES',viewport:{width:976,height:571}});
   page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(value=>Math.random=()=>value,random);
   // A cold font request must not disturb letter order or restart the cursor.
@@ -53,7 +53,7 @@ try{
   await page.getByRole('textbox',{name:'Tu mensaje',exact:true}).press('Enter');await page.locator('.edit-app').waitFor();
   await page.close();
  }
- const reduced=await browser.newPage({reducedMotion:'reduce'});
+ const reduced=await browser.newPage({locale:'es-ES',reducedMotion:'reduce'});
  await reduced.goto(base);
  assert.ok(await reduced.locator('.landing-type-char').evaluateAll(chars=>chars.length>0&&chars.every(c=>getComputedStyle(c).visibility==='visible')));
  assert.equal(await reduced.locator('.landing-type-caret').evaluate(c=>getComputedStyle(c).display),'none');

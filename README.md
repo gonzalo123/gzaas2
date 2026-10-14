@@ -23,7 +23,35 @@ Playwright instalado, o `CHROME_PATH=/ruta/a/Chrome`). Observa la reproducción
 real en los tres estilos: orden de letras, cursor único, dos parpadeos finales,
 carga lenta de fuentes, escritura simultánea, resize y movimiento reducido.
 
-El resultado de `dist/` se puede publicar en cualquier alojamiento estático. No necesita backend, base de datos, API keys, cookies ni almacenamiento local. Las fuentes se sirven desde el mismo sitio.
+El resultado de `dist/` se puede publicar en cualquier alojamiento estático. No necesita backend, base de datos, API keys ni cookies. Solo la preferencia de idioma se guarda en `localStorage`. Las fuentes se sirven desde el mismo sitio.
+
+## Idiomas
+
+La interfaz está disponible en español e inglés: landing, editor, estilos,
+controles, avisos y diálogos de compartir y exportar. Se elige primero la
+preferencia guardada en `gzaas.locale`, después el primer idioma compatible de
+`navigator.languages` (incluidas variantes como `es-MX` o `en-GB`) y, si no hay
+coincidencia, inglés. Solo una selección explícita escribe en `localStorage`;
+si el navegador lo bloquea, el cambio funciona durante esa visita.
+
+El selector utiliza los nombres Español / English, sin banderas. Aparece en una
+esquina de la landing, en la cabecera del editor (ES/EN en móvil) y con los
+controles del visor. El cambio actualiza `html.lang`, el título, los controles
+y el subtítulo animado. Conserva el borrador, el diseño, la pausa y el enlace.
+El idioma de la interfaz no forma parte de `#v1`: cada destinatario usa su propia
+preferencia. El texto del usuario y los archivos exportados no se traducen.
+
+`src/i18n.mjs` gestiona detección, persistencia e interpolación; `useI18n.tsx`
+suscribe los componentes. Las cadenas originales en español son las claves del
+catálogo `src/locales/en.mjs`. Los errores se traducen al mostrarse, también si
+se cambia el idioma después del error. Las cifras decimales usan `Intl`.
+No hay servicios remotos ni dependencias nuevas. La tarjeta social estática
+mantiene su idioma original, ya que los rastreadores no ejecutan la interfaz.
+
+`npm run test:i18n` comprueba la detección, persistencia, cambio en vivo,
+almacenamiento bloqueado, errores, exportación, móvil y compatibilidad de
+mensajes compartidos. Usa Chromium de Playwright o `CHROME_PATH=/ruta/a/Chrome`.
+La CI ejecuta estas pruebas y la regresión de la landing además de Galaxy.
 
 ## GitHub Pages
 
@@ -228,7 +256,7 @@ el renderer diferido, sin modificar el build de Pages.
 Pruebas reproducibles:
 
 ```sh
-npm test                 # 50 tests puros, incluidos once específicos de Galaxy
+npm test                 # 55 tests puros, incluidos once específicos de Galaxy y cinco de i18n
 npm run build            # TypeScript y producción
 npx playwright install chromium
 npm run test:browser     # inicia Vite local y comprueba Chromium/WebGL
