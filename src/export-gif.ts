@@ -10,7 +10,7 @@ export async function exportGif(state:Poster,ratio:string,signal:AbortSignal,onP
  const ctx=canvas.getContext('2d',{willReadFrequently:true});if(!ctx)throw Error('El navegador no puede crear el GIF.');
  const worker=new GifWorker();
  let pending:{resolve:(data:{bytes?:ArrayBuffer})=>void;reject:(error:Error)=>void}|undefined;
- let timer:ReturnType<typeof setTimeout>|undefined,renderer:ReturnType<typeof gifFrameRenderer>|undefined;
+ let timer:ReturnType<typeof setTimeout>|undefined,renderer:Awaited<ReturnType<typeof gifFrameRenderer>>|undefined;
  const clear=()=>{clearTimeout(timer);timer=undefined;};
  const fail=(error:Error)=>{clear();pending?.reject(error);pending=undefined;};
  worker.onmessage=({data})=>{clear();if(data.type==='error')fail(Error(data.message));else{pending?.resolve(data);pending=undefined;}};
@@ -25,8 +25,8 @@ export async function exportGif(state:Poster,ratio:string,signal:AbortSignal,onP
   await send({type:'init',width,height,repeat:state.repeat});
   for(const [i,frame] of plan.frames.entries()){
    signal.throwIfAborted();const scene=plan.sceneAt(frame.time);
-   if(scene.index!==sceneIndex){renderer?.dispose();renderer=gifFrameRenderer(sceneCanvas,scene.state,width,height,scene.particleDuration);sceneIndex=scene.index;}
-   renderer!.draw(scene.time);
+   if(scene.index!==sceneIndex){renderer?.dispose();renderer=await gifFrameRenderer(sceneCanvas,scene.state,width,height,scene.particleDuration);sceneIndex=scene.index;}
+   signal.throwIfAborted();renderer!.draw(scene.time);
    ctx.fillStyle=state.bg;ctx.fillRect(0,0,width,height);ctx.save();ctx.globalAlpha=scene.opacity;
    ctx.translate(width/2,height/2);ctx.scale(scene.scale,scene.scale);ctx.drawImage(sceneCanvas,-width/2,-height/2);ctx.restore();
    const rgba=ctx.getImageData(0,0,width,height).data.buffer;
@@ -34,7 +34,8 @@ export async function exportGif(state:Poster,ratio:string,signal:AbortSignal,onP
    onProgress(Math.round((i+1)/plan.frames.length*100));
   }
   const {bytes}=await send({type:'finish'});if(!bytes)throw Error('No se pudo finalizar el GIF.');
-  paint(canvas,state,width,height);
+  renderer?.dispose();renderer=undefined;
+  signal.throwIfAborted();await paint(canvas,state,width,height);signal.throwIfAborted();
   return {blob:new Blob([bytes],{type:'image/gif'}),thumbnail:canvas.toDataURL('image/png'),width,height,duration:plan.totalDuration};
  }finally{clear();renderer?.dispose();worker.terminate();signal.removeEventListener('abort',abort);}
 }

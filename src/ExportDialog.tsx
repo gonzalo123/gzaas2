@@ -51,6 +51,7 @@ export function ExportDialog({state,ratio,shareUrl,onPNG,onClose}:{state:Poster;
    <div className="export-formats" role="group" aria-label="Formato de descarga">{[['png','PNG','Una imagen para guardar.'],['gif','GIF','Toda la actitud, en movimiento.']].map(([id,name,description])=><button key={id} disabled={busy} aria-pressed={format===id} className={format===id?'selected':''} onClick={()=>{setFormat(id);setError('');}}><strong>{name}</strong><span>{description}</span></button>)}</div>
    <p className="export-details">{format==='gif'?`${width} × ${height} · ${(duration/1000).toFixed(1)} s · ${state.repeat?'En bucle':'Una vez'}`:'El mensaje completo, en alta resolución.'}</p>
    {busy?format==='gif'?<div className="export-progress"><div><span>Creando tu GIF…</span><strong>{progress}%</strong></div><progress value={progress} max={100} aria-label="Progreso de la exportación"/><button className="button secondary" onClick={cancel}>Cancelar</button></div>:<p role="status">Preparando imagen…</p>:<button className="button primary" onClick={()=>void generate()}>{format==='gif'?'Crear GIF':'Descargar PNG'}</button>}
+   {(state.animation==='particle-galaxy'||state.animation==='trailer'&&state.trailerGalaxy)&&<p className="export-local">Exportación 3D real. Requiere WebGL; los gestos no se graban.</p>}
    <p className="export-local">Tu mensaje se convierte aquí, en tu navegador.</p>
   </>}
   {error&&<p className="field-error" role="alert">{error}</p>}

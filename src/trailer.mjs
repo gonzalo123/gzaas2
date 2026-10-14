@@ -1,3 +1,4 @@
+import {isGalaxy} from './galaxy.mjs';
 import {isParticle,particleSeed,seededRandom} from './particles.mjs';
 
 const graphemes = text => [...new Intl.Segmenter('es', {granularity:'grapheme'}).segment(text)].map(s=>s.segment);
@@ -37,29 +38,29 @@ function ink(bg, preferred) {
 export function buildTrailer(state) {
  const tempo=state.pace==='slow'?1.45:state.pace==='fast'?.7:1;
  const soft=['serif','pacifico','abril'].includes(state.font);
- const motions=state.trailerParticles?['particle-assemble','particle-vortex','particle-explode']:soft?['reveal','letters','blur']:['impact','bounce','orbit'];
+ const motions=state.trailerGalaxy?['particle-galaxy']:state.trailerParticles?['particle-assemble','particle-vortex','particle-explode']:soft?['reveal','letters','blur']:['impact','bounce','orbit'];
  let start=0;
  const beats=trailerBeats(state.text);
  const seed=(particleSeed(JSON.stringify([state.text,state.font]))^(state.trailerSeed??0))>>>0;
  const random=seededRandom(seed);
  // Alternate families so even a one-word trailer includes both renderers.
  // Flipping the seed parity guarantees "Otra mezcla" changes the sequence.
- const particleMotions=['particle-assemble','particle-vortex','particle-explode'];
+ const particleMotions=state.trailerGalaxy?['particle-galaxy']:['particle-assemble','particle-vortex','particle-explode'];
  const classicMotions=soft?['reveal','letters','blur','cascade']:['impact','bounce','orbit','letters','cascade','reveal'];
  let previousParticle='',previousClassic='';
  const scenes=[...beats,state.text].map((text,index)=>{
   const final=index===beats.length;
   const palette=index%3===1?{bg:state.fg,fg:ink(state.fg,state.bg),accent:state.accent,backdrop:'solid'}:index%3===2?{bg:state.accent,fg:ink(state.accent,state.fg),accent:state.bg,backdrop:'solid'}:{};
-  let animation=final?(state.trailerParticles?'particle-assemble':'reveal'):motions[index%motions.length];
+  let animation=final?(state.trailerGalaxy?'particle-galaxy':state.trailerParticles?'particle-assemble':'reveal'):motions[index%motions.length];
   if(state.trailerMix){
    const particle=(index+(seed&1))%2===0;
    const pool=particle?particleMotions:final?['reveal','impact','blur']:classicMotions;
-   const options=pool.filter(mode=>mode!==(particle?previousParticle:previousClassic));
+   const options=pool.filter(mode=>pool.length===1||mode!==(particle?previousParticle:previousClassic));
    animation=options[Math.floor(random()*options.length)];
    if(particle)previousParticle=animation;else previousClassic=animation;
   }
   const baseDuration=(final?Math.min(6500,3500+graphemes(text).length*22):Math.min(3800,2500+graphemes(text).length*18))*tempo;
-  const duration=isParticle(animation)?Math.max(baseDuration,(final?5000:3600)*tempo):baseDuration;
+  const duration=isGalaxy(animation)?Math.max(baseDuration,(final?9000:6500)*tempo):isParticle(animation)?Math.max(baseDuration,(final?5000:3600)*tempo):baseDuration;
   const scene={state:{...state,...(!final?palette:{}),text,animation,repeat:false},start,duration,final};
   start+=duration;
   return scene;

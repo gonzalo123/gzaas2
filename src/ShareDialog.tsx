@@ -14,7 +14,7 @@ export function ShareDialog({state,ratio,url,onClose}:{state:Poster;ratio:string
    try{
     await waitFonts(snapshot.state);if(!active)return;
     const canvas=document.createElement('canvas');const [w,h]=snapshot.ratio==='square'?[1200,1200]:snapshot.ratio==='portrait'?[900,1200]:[1200,900];
-    paint(canvas,snapshot.state,w,h);
+    await paint(canvas,snapshot.state,w,h);
     const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('No se pudo preparar la imagen.')),'image/png'));
     if(!active)return;
     objectUrl=URL.createObjectURL(blob);setImage({file:new File([blob],'gzaas.png',{type:'image/png'}),url:objectUrl});

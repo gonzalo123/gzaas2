@@ -1,3 +1,5 @@
+import {GalaxyStage} from './GalaxyStage';
+import {isGalaxy} from './galaxy.mjs';
 import {ParticleStage} from './ParticleStage';
 import {isParticle} from './particles.mjs';
 import {useId,useLayoutEffect,useRef,useState,type CSSProperties} from 'react';
@@ -54,6 +56,7 @@ function PosterArtwork({state,paused=false,replay=0,onError,particleDuration,par
     </g>)}
    </g>}
   </svg>}
-  {geometry&&isParticle(state.animation)&&<ParticleStage state={state} width={geometry.width} height={geometry.height} particleDuration={particleDuration} particleClock={particleClock} paused={paused} replay={replay} onError={onError}/>}
+  {geometry&&isGalaxy(state.animation)&&<GalaxyStage state={state} width={geometry.width} height={geometry.height} particleDuration={particleDuration} particleClock={particleClock} paused={paused} replay={replay} onError={onError}/>}
+  {geometry&&isParticle(state.animation)&&!isGalaxy(state.animation)&&<ParticleStage state={state} width={geometry.width} height={geometry.height} particleDuration={particleDuration} particleClock={particleClock} paused={paused} replay={replay} onError={onError}/>}
  </div>;
 }

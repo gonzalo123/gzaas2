@@ -131,6 +131,106 @@ La mezcla se comprobó con ambos tipos de cierre, cambio de combinación, replay
 reapertura del enlace y HTML sin conexión. El GIF mixto de prueba contiene
 115 fotogramas (80 distintos) en 9,58 segundos.
 
+## Particle Galaxy 3D
+
+Actívalo en **Movimiento → Partículas → Particle Galaxy 3D**, o elige
+**Estilos → Noche y neón → Otra galaxia**. Conserva tu texto, fuente, alineación,
+colores, fondo y textura. Los efectos de contorno/sombra se reservan para los
+estilos clásicos. Prueba un mensaje corto sobre fondo oscuro para apreciar el halo.
+
+Una espiral espacial se reúne en letras con tres capas reales de profundidad:
+caos inicial, atracción entre aproximadamente 2 y 6 segundos, revelación y órbita
+moderada, y cierre legible. El ciclo completo dura 12 segundos a ritmo normal,
+8,4 en rápido y 17,4 en pausado. En bucle vuelve suavemente a la nube inicial;
+sin bucle el cierre detiene el dibujo al terminar la respiración, para ahorrar GPU.
+Después de la revelación puedes arrastrar para orbitar con inercia y límites,
+y hacer un clic breve para dispersar/recomponer. En **Ver en grande** también
+funcionan rueda y pellizco; el editor conserva el desplazamiento táctil nativo.
+Los gestos se desactivan durante la entrada, pausa y movimiento reducido.
+
+**Calidad 3D** ofrece Automática, Ligera y Alta, y **Cámara cinematográfica**
+permite desactivar el recorrido automático. Automática limita el muestreo según
+el tamaño y los núcleos disponibles, sin detectar marcas de dispositivos:
+hasta 9.000 o 14.400 puntos tipográficos. Ligera usa hasta 7.200 y Alta hasta
+18.000, además de un pequeño campo de estrellas. DPR se limita a 1,75 y el lado
+mayor del canvas a 2.048 píxeles en la vista. Las tres capas y el grosor relativo
+a la fuente mantienen volumen incluso en formatos verticales. La máscara
+canónica de 800 píxeles reutiliza `layoutText`; los puntos desplazados permanecen
+dentro de píxeles opacos, preservando huecos y acentos. Los emojis dependen de
+las fuentes del sistema y se convierten en siluetas, sin conservar su color original.
+
+La escena usa Three.js `Points`, buffers persistentes y un shader radial de
+núcleo/halo, sin luces, texturas remotas ni postprocesado. Tres lotes dibujan
+estrellas, estela y letras. Solo las posiciones se actualizan por fotograma;
+la máscara y los atributos de tamaño/color se construyen una vez por escena.
+Las trayectorias y cámara son funciones del tiempo y de una semilla derivada
+del mensaje. Pausa y pestaña oculta suspenden el reloj; resize conserva su
+progreso; replay lo reinicia. El desmontaje libera buffers, materiales, contexto,
+RAF y listeners. No se crea un contexto por fotograma.
+
+`galaxyQuality` (`auto`, `low`, `high`, por defecto `auto`), `galaxyCamera`
+(booleano, por defecto `true`) y `trailerGalaxy` (booleano, por defecto `false`)
+se validan y comparten en **el mismo `#v1=`**. El identificador del efecto es
+`particle-galaxy`. Los enlaces anteriores reciben valores seguros y mantienen
+sus animaciones y coreografías.
+
+En **Movimiento → Tráiler**, **Galaxy 3D** usa escenas de 6,5 segundos y cierre
+de 9 segundos, escalados por ritmo. **Mezcla → Incluir Galaxy 3D** alterna escenas
+clásicas y 3D con la semilla existente. La vista y el GIF comparten el reloj y
+las duraciones; se puede pausar, repetir y saltar de escena. Los gestos 3D están
+desactivados durante el tráiler para mantener la coreografía. Cada escena monta
+su renderer y lo libera al cambiar; queda abierta la mejora de reutilizar puntos
+para morphing continuo entre palabras.
+
+**PNG** renderiza el cierre 3D con su fondo. **GIF** renderiza cada fotograma
+real en WebGL, lo copia inmediatamente al canvas del exportador y entrega los
+píxeles al worker existente, a 12 fps y hasta 640 píxeles. El contexto de exportación
+usa `preserveDrawingBuffer`; la vista no. La exportación libera el contexto al
+cambiar de escena, cancelar o terminar y mantiene una sola petición pendiente al
+worker. El flujo codificado tiene un límite de 48 MB: si se supera, se cancela
+con un aviso para acortar el tráiler o bajar la calidad. El PNG y el último fotograma tienen la misma geometría y cámara a igual
+calidad/proporción; los fondos animados mantienen la política anterior de PNG
+estático. La calidad automática puede variar entre vista y exportación según su
+tamaño; usa Alta o Ligera para una densidad fija. Los gestos no se exportan.
+
+Sin WebGL2, la **vista muestra Ensamblar 2D con un aviso visible**. Una pérdida
+de contexto también activa esa vista hasta que se restaure WebGL. PNG y GIF 3D
+**fallan con un mensaje explícito**, sin sustituir el resultado por 2D: puedes
+seleccionar Ensamblar para exportar esa alternativa. Con movimiento reducido
+se muestra inmediatamente el cierre 3D estático, sin gestos; la exportación GIF
+sigue siendo una acción explícita con movimiento y miniatura estática.
+
+Dependencias añadidas: `three` 0.186.1 (MIT, licencia en `public/licenses/`),
+`@types/three` y Playwright solo para desarrollo. Vite empaqueta todo localmente.
+Build de referencia: renderer 3D **527,79 kB / 131,62 kB gzip**, cargado únicamente
+al seleccionar o exportar 3D. El JavaScript inicial pasa de 306,84 / 97,91 kB gzip
+a aproximadamente 319 / 102 kB gzip. Vite avisa del tamaño del chunk 3D; se
+mantiene aislado para no descargar Three.js en los estilos clásicos. Las fuentes
+ya incluidas constituyen la mayor parte del CSS y no añaden recursos nuevos.
+La copia `file://` se genera con un build de módulo único para incluir también
+el renderer diferido, sin modificar el build de Pages.
+
+Pruebas reproducibles:
+
+```sh
+npm test                 # 47 tests puros, incluidos ocho específicos de Galaxy
+npm run build            # TypeScript y producción
+npx playwright install chromium
+npm run test:browser     # inicia Vite local y comprueba Chromium/WebGL
+# Alternativa: CHROME_PATH=/ruta/a/Chrome npm run test:browser
+node scripts/package-preview.mjs /tmp/gzaas-preview.html
+```
+
+El workflow de Pages ejecuta también la suite de navegador antes de publicar.
+La suite de navegador comprueba carga diferida, pausa/reanudación, replay,
+igualdad PNG/fotograma final, GIF decodificado con movimiento, cancelación,
+gestos, pérdida/restauración de contexto, tráiler mixto, móvil emulado,
+movimiento reducido y errores explícitos de exportación sin WebGL.
+Guarda capturas y un GIF en `/tmp/gzaas-galaxy-check` (configurable con
+`TEST_ARTIFACTS`). No es una medición de rendimiento en teléfonos físicos.
+Quedan para una siguiente iteración mediciones en móviles de gama baja y
+Safari/Firefox, adaptación de calidad basada en tiempos GPU y morphing continuo.
+
 ## Créditos
 
 Idea original: **[ojoven](https://github.com/ojoven)**, [Gzaas!](https://github.com/ojoven/gzaas). Gonzalo Ayuso colaboró en el proyecto original con la API PHP. Esta versión conserva la idea y renueva la interfaz y arquitectura. El crédito enlazado al proyecto original y a su autor aparece en la landing, el editor y el visor.

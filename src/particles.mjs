@@ -1,7 +1,7 @@
 // Pure, browser-independent particle engine. Coordinates use a bounded mask space.
 export const PARTICLE_DURATION=7000;
 export const PARTICLE_LIMIT=6000;
-export const isParticle=(animation)=>['particle-assemble','particle-explode','particle-vortex'].includes(animation);
+export const isParticle=(animation)=>['particle-assemble','particle-explode','particle-vortex','particle-galaxy'].includes(animation);
 export const particleTempo=(pace)=>pace==='slow'?1.45:pace==='fast'?.7:1;
 // Trailer scenes compress the same full trajectory into their reading time.
 /** @param {number} time @param {string} pace @param {number} [duration] */

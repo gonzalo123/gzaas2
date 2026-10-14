@@ -174,3 +174,13 @@
  .edit-app .panel-design .segmented button {padding:6px 5px}
  .editor-summary,.panel-hint {display:none}
 }
+
+.demo-particle-galaxy .motion-demo {background:radial-gradient(ellipse at 30% 35%,#835df855,transparent 55%),#080e24;color:#e5f0ff;}
+.demo-particle-galaxy .motion-demo>span {text-shadow:0 0 12px #8f9eff;}
+.galaxy-settings {display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.8rem;margin:10px 0;}
+.galaxy-settings select {width:auto;flex:1;}
+.galaxy-layer {position:absolute;inset:0;}
+.galaxy-fallback {position:absolute;bottom:8px;left:8px;padding:4px 8px;background:#000b;color:#fff;border-radius:6px;font-size:11px;pointer-events:none;}
+.viewer .galaxy-interactive {touch-action:none;cursor:grab;}
+.viewer .galaxy-interactive:active {cursor:grabbing;}
+@media(prefers-reduced-motion:reduce){.viewer .galaxy-interactive{touch-action:auto;cursor:default;}}

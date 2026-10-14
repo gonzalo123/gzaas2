@@ -21,6 +21,7 @@ export const BACKDROPS = [
 ];
 export const COLLECTIONS = ['Esenciales','Noche y neón','Pop y retro','Con carácter'];
 export const ANIMATIONS = [
+ {id:'particle-galaxy',name:'Particle Galaxy 3D',description:'Una galaxia se convierte en letras con volumen. Arrastra para explorar; toca para dispersar.',mark:'✺',group:'particles'},
  {id:'particle-assemble',name:'Ensamblar',description:'Particle Assemble · Una nube de luz encuentra las letras. Repite para volver a verla.',mark:'✦',group:'particles'},
  {id:'particle-explode',name:'Explosión',description:'Explode & Reform · El mensaje estalla y vuelve a formarse.',mark:'✷',group:'particles'},
  {id:'particle-vortex',name:'Vórtice',description:'Particle Vortex · Una espiral de partículas se convierte en tu mensaje.',mark:'◎',group:'particles'},
@@ -37,7 +38,7 @@ export const ANIMATIONS = [
  {id:'float',name:'Flotar',description:'Un movimiento lento y ligero.',mark:'≈'},
  {id:'none',name:'Sin movimiento',description:'Todo el peso, en las palabras.',mark:'—'},
 ];
-export const DEFAULT = {trailerMix:false,trailerSeed:0,trailerParticles:false,particleDensity:2,particleInteraction:true,v:1,text:'HOY VA A\nSER UN\nGRAN DÍA.',font:'bebas',fg:'#25382c',bg:'#d9f66f',pattern:'none',effect:'none',align:'center',size:90,animation:'letters',pace:'normal',repeat:true,backdrop:'mesh',accent:'#b7ec46',backdropMotion:true};
+export const DEFAULT = {galaxyQuality:'auto',galaxyCamera:true,trailerGalaxy:false,trailerMix:false,trailerSeed:0,trailerParticles:false,particleDensity:2,particleInteraction:true,v:1,text:'HOY VA A\nSER UN\nGRAN DÍA.',font:'bebas',fg:'#25382c',bg:'#d9f66f',pattern:'none',effect:'none',align:'center',size:90,animation:'letters',pace:'normal',repeat:true,backdrop:'mesh',accent:'#b7ec46',backdropMotion:true};
 export const PRESETS = [
  {name:'A todo volumen',sample:'QUE SE\nOIGA.',font:'bebas',fg:'#25382c',bg:'#d9f66f',pattern:'none',effect:'none',animation:'letters',backdrop:'mesh',accent:'#b7ec46',backdropMotion:true},
  {name:'Con cariño',sample:'Tú,\nsiempre.',font:'serif',fg:'#812447',bg:'#ffd0e1',pattern:'none',effect:'none',animation:'fade'},
@@ -47,7 +48,7 @@ export const PRESETS = [
  {name:'Entre líneas',sample:'Quédate\nun rato.',font:'serif',fg:'#272727',bg:'#f3f1eb',pattern:'lines',effect:'none',animation:'reveal'},
  {name:'Neón rosa',sample:'STAY\nWILD',font:'monoton',fg:'#ff9dea',bg:'#110620',accent:'#9b28ee',backdrop:'aurora',effect:'neon',animation:'wave'},
  {name:'Club nocturno',sample:'AFTER\nHOURS',font:'bungee',fg:'#fff68f',bg:'#16092b',accent:'#e72586',backdrop:'rays',animation:'impact'},
- {name:'Otra galaxia',sample:'SIN\nLÍMITES',font:'space',fg:'#f5eaff',bg:'#091129',accent:'#5659ee',backdrop:'stars',animation:'letters'},
+ {name:'Otra galaxia',sample:'SIN\nLÍMITES',font:'space',fg:'#f5eaff',bg:'#091129',accent:'#5659ee',backdrop:'stars',animation:'particle-galaxy'},
  {name:'Aurora boreal',sample:'KEEP\nDREAMING',font:'righteous',fg:'#dcffe7',bg:'#092a2d',accent:'#29c5a4',backdrop:'aurora',animation:'blur'},
  {name:'Disco fever',sample:'DANCE\nWITH ME',font:'monoton',fg:'#ffea79',bg:'#33104c',accent:'#c53387',backdrop:'mesh',effect:'neon',animation:'orbit'},
  {name:'Cian eléctrico',sample:'MAKE\nSOME NOISE',font:'anton',fg:'#9bfaff',bg:'#09171d',accent:'#08728e',backdrop:'waves',effect:'neon',animation:'bounce'},
@@ -70,10 +71,11 @@ export function validateState(s) {
  if (typeof s.text !== 'string' || [...s.text].length > MAX_TEXT || !s.text.trim() || s.text.split('\n').length > 12) throw new Error('El mensaje no es válido: máximo 280 caracteres y 12 líneas.');
  if (!oneOf(s.font,FONTS.map(f=>f.id)) || !oneOf(s.pattern,['none','dots','grid','lines']) || !oneOf(s.effect,['none','shadow','outline','neon','echo']) || !oneOf(s.align,['left','center','right']) || !oneOf(s.animation,ANIMATIONS.map(a=>a.id)) || (s.pace!==undefined&&!oneOf(s.pace,['slow','normal','fast'])) || (s.repeat!==undefined&&typeof s.repeat!=='boolean') || (s.backdrop!==undefined&&!oneOf(s.backdrop,BACKDROPS.map(b=>b.id))) || (s.backdropMotion!==undefined&&typeof s.backdropMotion!=='boolean')) throw new Error('El diseño del enlace no es válido.');
  if((s.trailerMix!==undefined&&typeof s.trailerMix!=='boolean')||(s.trailerSeed!==undefined&&(!Number.isInteger(s.trailerSeed)||s.trailerSeed<0||s.trailerSeed>4294967295))) throw new Error('La mezcla del tráiler no es válida.');
+ if((s.galaxyQuality!==undefined&&!['auto','low','high'].includes(s.galaxyQuality))||(s.galaxyCamera!==undefined&&typeof s.galaxyCamera!=='boolean')||(s.trailerGalaxy!==undefined&&typeof s.trailerGalaxy!=='boolean')) throw new Error('La configuración 3D no es válida.');
  if(s.trailerParticles!==undefined&&typeof s.trailerParticles!=='boolean') throw new Error('El estilo del tráiler no es válido.');
  if ((s.particleDensity!==undefined&&![1,2,3].includes(s.particleDensity))||(s.particleInteraction!==undefined&&typeof s.particleInteraction!=='boolean')) throw new Error('La configuración de partículas no es válida.');
  if (![s.fg,s.bg,s.accent===undefined?'#8b5cf6':s.accent].every(c=>typeof c==='string' && /^#[0-9a-fA-F]{6}$/.test(c)) || !Number.isInteger(s.size) || s.size<40 || s.size>100) throw new Error('El diseño del enlace no es válido.');
- return {trailerMix:s.trailerMix??false,trailerSeed:s.trailerSeed??0,trailerParticles:s.trailerParticles??false,particleDensity:s.particleDensity??2,particleInteraction:s.particleInteraction??true,v:1,text:s.text,font:s.font,fg:s.fg,bg:s.bg,pattern:s.pattern,effect:s.effect,align:s.align,size:s.size,animation:s.animation,pace:s.pace??'normal',repeat:s.repeat??false,backdrop:s.backdrop??'solid',accent:s.accent??'#8b5cf6',backdropMotion:s.backdropMotion??false};
+ return {galaxyQuality:s.galaxyQuality??'auto',galaxyCamera:s.galaxyCamera??true,trailerGalaxy:s.trailerGalaxy??false,trailerMix:s.trailerMix??false,trailerSeed:s.trailerSeed??0,trailerParticles:s.trailerParticles??false,particleDensity:s.particleDensity??2,particleInteraction:s.particleInteraction??true,v:1,text:s.text,font:s.font,fg:s.fg,bg:s.bg,pattern:s.pattern,effect:s.effect,align:s.align,size:s.size,animation:s.animation,pace:s.pace??'normal',repeat:s.repeat??false,backdrop:s.backdrop??'solid',accent:s.accent??'#8b5cf6',backdropMotion:s.backdropMotion??false};
 }
 export function encodeState(s) {
  const hash = '#v1='+LZString.compressToEncodedURIComponent(JSON.stringify(validateState(s)));
