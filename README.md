@@ -60,6 +60,56 @@ Máximo 280 caracteres Unicode, 12 líneas y 4096 caracteres de fragmento; la de
 - Entrada y salida del visor con transiciones. Al abrir un enlace, pulsar «Ver en grande» o activar pantalla completa se muestra solo el mensaje: menú, navegación del tráiler, progreso y créditos aparecen al mover el ratón, tocar la pantalla o usar el teclado, y se ocultan tras 2,8 segundos sin interacción. El foco de teclado mantiene accesibles los controles; un clic con el ratón no los deja visibles permanentemente.
 - Integración WebMCP opcional por detección de disponibilidad para configurar texto; no comparte automáticamente.
 
+## Tipografía de partículas
+
+En **Movimiento → Partículas** puedes elegir **Ensamblar (Particle Assemble)**,
+**Explosión (Explode & Reform)** o **Vórtice (Particle Vortex)**. Escribe «HOLA
+MUNDO», prueba los tres modos y usa el botón **Repetir animación** de la vista
+previa. Densidad ofrece tres niveles; el control de repulsión permite apartar las
+partículas con el cursor. En móvil, la interacción táctil se activa únicamente
+en **Ver en grande**, sin capturar los gestos de desplazamiento del editor.
+
+Los tres modos conservan fuente, alineación, tamaño, colores, fondo y textura.
+Usan la silueta rellena de la fuente con su propio halo; Sombra, Contorno, Neón y
+Eco 3D siguen disponibles al volver a una animación convencional. Tráiler sigue
+siendo un modo independiente: sus escenas mantienen las animaciones originales.
+
+`particleDensity` (1–3, por defecto 2) y `particleInteraction` (booleano, por
+defecto true) viajan en el mismo enlace `#v1=`. Los enlaces anteriores conservan
+su animación y reciben estos valores sin cambiar su apariencia. No se añade
+ninguna dependencia, servicio, almacenamiento ni petición externa.
+
+El motor puro de `src/particles.mjs` toma una máscara alfa creada con
+`layoutText()` y las fuentes locales. Una máscara de hasta 800 píxeles por lado
+mantiene la distribución independiente de la resolución de exportación y del
+DPR. Las nubes tienen hasta 2.400 / 4.000 / 6.000 partículas, con posiciones,
+velocidades y semilla propias. Las trayectorias se evalúan por tiempo explícito;
+el muelle del puntero usa subpasos acotados y no altera la animación exportada.
+Canvas agrupa el dibujo en ocho lotes de color/opacidad, sin sombras costosas
+por punto. El visor dibuja como máximo a 30 fps, limita DPR a 2 y el lado del
+lienzo a 2.048 píxeles. Pausa, pestaña oculta y desmontaje cancelan el reloj;
+una reproducción única termina formada y detiene el dibujo cuando acaba la
+interacción. Con movimiento reducido se muestra directamente el mensaje formado.
+
+PNG usa el estado final. GIF usa las mismas trayectorias a 12 fps, con el worker,
+progreso y cancelación existentes. Cada ciclo dura 7 segundos en ritmo normal,
+10,15 en pausado y 4,9 en rápido; el bucle devuelve la nube a su posición inicial.
+El movimiento del fondo sigue su propio ciclo, como en las demás animaciones.
+Las diferencias tipográficas entre plataformas (especialmente emojis) también
+pueden modificar la máscara. La repulsión del usuario no se graba en el GIF.
+
+Validación de partículas: **32 tests** (`npm test`), TypeScript y build
+(`npm run build`). Los nueve tests nuevos cubren muestreo y trazos finos,
+semillas, límites, reproducción por tiempo, convergencia, continuidad de bucles,
+repulsión y recuperación, validación y enlaces antiguos, y tiempos de GIF.
+Comprobación en Chromium: escritorio, móvil emulado de 390 × 844 y 320 × 640,
+las doce fuentes, texto largo/multilínea, pausa/replay, movimiento reducido,
+igualdad PNG/fotograma final, exportación y cancelación. La copia creada con
+`scripts/package-preview.mjs` exportó PNG y GIF de los tres modos sin conexión
+ni peticiones HTTP. Los GIF de prueba a ritmo rápido tienen 59 fotogramas y
+4,9 segundos, con movimiento real y bandera de bucle correcta. La prueba móvil
+es emulación; queda pendiente medir consumo en teléfonos físicos de gama baja.
+
 ## Créditos
 
 Idea original: **[ojoven](https://github.com/ojoven)**, [Gzaas!](https://github.com/ojoven/gzaas). Gonzalo Ayuso colaboró en el proyecto original con la API PHP. Esta versión conserva la idea y renueva la interfaz y arquitectura. El crédito enlazado al proyecto original y a su autor aparece en la landing, el editor y el visor.
@@ -77,7 +127,7 @@ Abre `gzaas-preview.html` en un navegador moderno. Incluye el código, CSS y fue
 
 ## Validación de esta entrega
 
-Build de producción y comprobación TypeScript correctos. Veintitrés tests: tres de archivos compartidos, enlaces públicos y compatibilidad; diez del formato de URL, incluyendo todas las combinaciones de fuentes, fondos y efectos, animación, ritmo y repetición y compatibilidad con enlaces antiguos; cinco de segmentación, grafemas, secuencias, tiempos, cierre y bucles del tráiler; cinco de proporciones, fotogramas, tiempos GIF, secuencias completas y exportación estática. Revisión visual e interacción en Chrome en escritorio y móvil: colecciones, selector de fuentes, animación por letras y de fondos, pausa, repetición, visor, enlaces compartidos, créditos y movimiento reducido. Exportación GIF comprobada sin conexión desde la demo HTML: fuentes, efectos, tráiler completo, bucle, cancelación y PNG; archivos GIF decodificados para verificar fotogramas, tiempos y proporciones. El diálogo cabe sin scroll en las nueve resoluciones de escritorio y móvil revisadas. Compartir PNG y GIF con enlace comprobado con un menú nativo simulado, incluyendo activación del usuario, cancelación y descarga alternativa; no se ha enviado a WhatsApp. Metadatos sociales estáticos e imagen PNG de 1200 × 630 comprobados en el build; la tarjeta en apps de terceros se comprobará tras publicar. La integración WebMCP no se ha validado en un navegador que la implemente.
+Build de producción y comprobación TypeScript correctos. Treinta y dos tests: nueve de partículas, tres de archivos compartidos, enlaces públicos y compatibilidad; diez del formato de URL, incluyendo todas las combinaciones de fuentes, fondos y efectos, animación, ritmo y repetición y compatibilidad con enlaces antiguos; cinco de segmentación, grafemas, secuencias, tiempos, cierre y bucles del tráiler; cinco de proporciones, fotogramas, tiempos GIF, secuencias completas y exportación estática. Revisión visual e interacción en Chrome en escritorio y móvil: colecciones, selector de fuentes, animación por letras y de fondos, pausa, repetición, visor, enlaces compartidos, créditos y movimiento reducido. Exportación GIF comprobada sin conexión desde la demo HTML: fuentes, efectos, tráiler completo, bucle, cancelación y PNG; archivos GIF decodificados para verificar fotogramas, tiempos y proporciones. El diálogo cabe sin scroll en las nueve resoluciones de escritorio y móvil revisadas. Compartir PNG y GIF con enlace comprobado con un menú nativo simulado, incluyendo activación del usuario, cancelación y descarga alternativa; no se ha enviado a WhatsApp. Metadatos sociales estáticos e imagen PNG de 1200 × 630 comprobados en el build; la tarjeta en apps de terceros se comprobará tras publicar. La integración WebMCP no se ha validado en un navegador que la implemente.
 
 ## Licencia
 

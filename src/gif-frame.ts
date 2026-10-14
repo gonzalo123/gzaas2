@@ -1,4 +1,6 @@
-import {layoutText,paintTexture,paintTextUnit,type Poster} from './render';
+import {isParticle,particleTempo} from './particles.mjs';
+import {drawParticles} from './particle-canvas';
+import {createPosterParticles,layoutText,paintTexture,paintTextUnit,type Poster} from './render';
 import {backdropScene,paintBackdrop} from './background';
 import {motionSampler,textTiming} from './motion-sampler';
 
@@ -11,7 +13,8 @@ export function gifFrameRenderer(canvas:HTMLCanvasElement,state:Poster,width:num
  const byLetter=['letters','wave','bounce','orbit'].includes(state.animation),byPart=byLetter||state.animation==='cascade';
  const count=geometry.lines.reduce((n,l)=>n+l.letters.length,0),timing=textTiming(state.animation,state.repeat,tempo);
  let index=0;
- const parts=geometry.lines.flatMap((line,lineIndex)=>(byLetter?line.letters:state.animation==='cascade'?line.words:[{text:line.text,x:line.x}]).map(word=>{
+ const field=isParticle(state.animation)?createPosterParticles(state,width,height):null;
+ const parts=field?[]:geometry.lines.flatMap((line,lineIndex)=>(byLetter?line.letters:state.animation==='cascade'?line.words:[{text:line.text,x:line.x}]).map(word=>{
   const delay=(byLetter?index++/Math.max(1,count-1)*1.15:Math.min(index++*.105,.85))*tempo*1000;
   const sample=sampler.create(timing.name,{duration:timing.duration,delay,easing:timing.easing}, {'--lift':`${geometry.fontSize*.25}px`,'--tilt':`${lineIndex%2?-3:3}deg`,'--float':`${Math.min(10,unit*.012)}px`});
   return {...word,y:line.y,pivot:line.y-geometry.fontSize*.35,sample};
@@ -22,6 +25,7 @@ export function gifFrameRenderer(canvas:HTMLCanvasElement,state:Poster,width:num
   draw(time:number){
    ctx.clearRect(0,0,width,height);
    paintBackdrop(ctx,state,width,height,background,i=>shapes[i](time));paintTexture(ctx,state,width,height);
+   if(field)drawParticles(ctx,field,state,width,height,time/particleTempo(state.pace));
    for(const part of parts){
     const sample=part.sample(time),m=sample.matrix;
     if(sample.opacity<=0)continue;

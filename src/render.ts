@@ -1,6 +1,8 @@
 import {FONTS} from './state.mjs';
+import {createParticles,sampleTargets,particleSeed,isParticle} from './particles.mjs';
+import {drawParticles,type ParticleField} from './particle-canvas';
 import {paintBackdrop} from './background';
-export type Poster = {v:number;text:string;font:string;fg:string;bg:string;pattern:string;effect:string;align:string;size:number;animation:string;pace:string;repeat:boolean;backdrop:string;accent:string;backdropMotion:boolean};
+export type Poster = {v:number;text:string;font:string;fg:string;bg:string;pattern:string;effect:string;align:string;size:number;animation:string;pace:string;repeat:boolean;backdrop:string;accent:string;backdropMotion:boolean;particleDensity:number;particleInteraction:boolean};
 export const families:Record<string,string> = Object.fromEntries(FONTS.map(f=>[f.id,`"${f.family}", ${f.id==='serif'||f.id==='abril'?'serif':'sans-serif'}`]));
 export const fontWeight = (font:string) => FONTS.find(f=>f.id===font)?.weight??400;
 const weight = (s:Poster) => fontWeight(s.font);
@@ -55,6 +57,7 @@ export function paint(canvas:HTMLCanvasElement,s:Poster,width:number,height:numb
  const ctx=canvas.getContext('2d');if(!ctx)return;
  paintBackdrop(ctx,s,width,height);
  paintTexture(ctx,s,width,height);
+ if(isParticle(s.animation)){drawParticles(ctx,createPosterParticles(s,width,height),s,width,height,0,true);return;}
  const {fontSize,lines}=layoutText(ctx,s,width,height);
  for(const line of lines)paintTextUnit(ctx,s,fontSize,line.text,line.x,line.y,s.align as CanvasTextAlign);
 }
@@ -76,3 +79,17 @@ export function paintTextUnit(ctx:CanvasRenderingContext2D,s:Poster,fontSize:num
  ctx.restore();
 }
 export async function waitFonts(s:Poster){await document.fonts.load(`${weight(s)} 24px ${families[s.font]}`);await document.fonts.ready;}
+
+// A canonical mask makes dots independent of DPR and export resolution.
+export function createPosterParticles(s:Poster,width:number,height:number):ParticleField{
+ const scale=800/Math.max(width,height),w=Math.max(1,Math.round(width*scale)),h=Math.max(1,Math.round(height*scale));
+ const mask=document.createElement('canvas');mask.width=w;mask.height=h;
+ const ctx=mask.getContext('2d',{willReadFrequently:true});if(!ctx)throw Error('El navegador no puede dibujar las partículas.');
+ const geometry=layoutText(ctx,s,w,h);
+ ctx.font=`${fontWeight(s.font)} ${geometry.fontSize}px ${families[s.font]}`;ctx.textAlign=s.align as CanvasTextAlign;ctx.fillStyle='#fff';
+ for(const line of geometry.lines)ctx.fillText(line.text,line.x,line.y);
+ const seed=particleSeed(JSON.stringify([s.text,s.font,s.align,s.size,s.particleDensity??2]));
+ const budget=[2400,4000,6000][(s.particleDensity??2)-1]??4000;
+ const targets=sampleTargets(ctx.getImageData(0,0,w,h).data,w,h,budget,seed);
+ return {particles:createParticles(targets,w,h,seed),width:w,height:h};
+}

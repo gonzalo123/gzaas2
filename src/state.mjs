@@ -21,6 +21,9 @@ export const BACKDROPS = [
 ];
 export const COLLECTIONS = ['Esenciales','Noche y neón','Pop y retro','Con carácter'];
 export const ANIMATIONS = [
+ {id:'particle-assemble',name:'Ensamblar',description:'Particle Assemble · Una nube de luz encuentra las letras. Repite para volver a verla.',mark:'✦',group:'particles'},
+ {id:'particle-explode',name:'Explosión',description:'Explode & Reform · El mensaje estalla y vuelve a formarse.',mark:'✷',group:'particles'},
+ {id:'particle-vortex',name:'Vórtice',description:'Particle Vortex · Una espiral de partículas se convierte en tu mensaje.',mark:'◎',group:'particles'},
  {id:'trailer',name:'Modo Tráiler',description:'Tu mensaje, convertido en una secuencia de escenas.',mark:'▶'},
  {id:'letters',name:'Letra a letra',description:'Un mensaje que se construye letra a letra.',mark:'Ab',group:'letters'},
  {id:'wave',name:'Ola',description:'Una ola recorre cada letra.',mark:'∿',group:'letters'},
@@ -34,7 +37,7 @@ export const ANIMATIONS = [
  {id:'float',name:'Flotar',description:'Un movimiento lento y ligero.',mark:'≈'},
  {id:'none',name:'Sin movimiento',description:'Todo el peso, en las palabras.',mark:'—'},
 ];
-export const DEFAULT = {v:1,text:'HOY VA A\nSER UN\nGRAN DÍA.',font:'bebas',fg:'#25382c',bg:'#d9f66f',pattern:'none',effect:'none',align:'center',size:90,animation:'letters',pace:'normal',repeat:true,backdrop:'mesh',accent:'#b7ec46',backdropMotion:true};
+export const DEFAULT = {particleDensity:2,particleInteraction:true,v:1,text:'HOY VA A\nSER UN\nGRAN DÍA.',font:'bebas',fg:'#25382c',bg:'#d9f66f',pattern:'none',effect:'none',align:'center',size:90,animation:'letters',pace:'normal',repeat:true,backdrop:'mesh',accent:'#b7ec46',backdropMotion:true};
 export const PRESETS = [
  {name:'A todo volumen',sample:'QUE SE\nOIGA.',font:'bebas',fg:'#25382c',bg:'#d9f66f',pattern:'none',effect:'none',animation:'letters',backdrop:'mesh',accent:'#b7ec46',backdropMotion:true},
  {name:'Con cariño',sample:'Tú,\nsiempre.',font:'serif',fg:'#812447',bg:'#ffd0e1',pattern:'none',effect:'none',animation:'fade'},
@@ -66,8 +69,9 @@ export function validateState(s) {
  if (!s || typeof s !== 'object' || s.v !== 1) throw new Error('Este enlace usa un formato que todavía no podemos abrir.');
  if (typeof s.text !== 'string' || [...s.text].length > MAX_TEXT || !s.text.trim() || s.text.split('\n').length > 12) throw new Error('El mensaje no es válido: máximo 280 caracteres y 12 líneas.');
  if (!oneOf(s.font,FONTS.map(f=>f.id)) || !oneOf(s.pattern,['none','dots','grid','lines']) || !oneOf(s.effect,['none','shadow','outline','neon','echo']) || !oneOf(s.align,['left','center','right']) || !oneOf(s.animation,ANIMATIONS.map(a=>a.id)) || (s.pace!==undefined&&!oneOf(s.pace,['slow','normal','fast'])) || (s.repeat!==undefined&&typeof s.repeat!=='boolean') || (s.backdrop!==undefined&&!oneOf(s.backdrop,BACKDROPS.map(b=>b.id))) || (s.backdropMotion!==undefined&&typeof s.backdropMotion!=='boolean')) throw new Error('El diseño del enlace no es válido.');
+ if ((s.particleDensity!==undefined&&![1,2,3].includes(s.particleDensity))||(s.particleInteraction!==undefined&&typeof s.particleInteraction!=='boolean')) throw new Error('La configuración de partículas no es válida.');
  if (![s.fg,s.bg,s.accent===undefined?'#8b5cf6':s.accent].every(c=>typeof c==='string' && /^#[0-9a-fA-F]{6}$/.test(c)) || !Number.isInteger(s.size) || s.size<40 || s.size>100) throw new Error('El diseño del enlace no es válido.');
- return {v:1,text:s.text,font:s.font,fg:s.fg,bg:s.bg,pattern:s.pattern,effect:s.effect,align:s.align,size:s.size,animation:s.animation,pace:s.pace??'normal',repeat:s.repeat??false,backdrop:s.backdrop??'solid',accent:s.accent??'#8b5cf6',backdropMotion:s.backdropMotion??false};
+ return {particleDensity:s.particleDensity??2,particleInteraction:s.particleInteraction??true,v:1,text:s.text,font:s.font,fg:s.fg,bg:s.bg,pattern:s.pattern,effect:s.effect,align:s.align,size:s.size,animation:s.animation,pace:s.pace??'normal',repeat:s.repeat??false,backdrop:s.backdrop??'solid',accent:s.accent??'#8b5cf6',backdropMotion:s.backdropMotion??false};
 }
 export function encodeState(s) {
  const hash = '#v1='+LZString.compressToEncodedURIComponent(JSON.stringify(validateState(s)));

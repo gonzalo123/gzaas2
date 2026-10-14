@@ -1,5 +1,7 @@
 import {buildTrailer,trailerPosition} from './trailer.mjs';
 
+import {isParticle,PARTICLE_DURATION} from './particles.mjs';
+
 export const GIF_FPS=12;
 export function exportDimensions(ratio) {
  return ratio==='portrait'?[480,640]:ratio==='square'?[640,640]:[640,480];
@@ -8,7 +10,7 @@ export function exportPlan(state) {
  const tempo=state.pace==='slow'?1.45:state.pace==='fast'?.7:1;
  const trailer=state.animation==='trailer'?buildTrailer(state):null;
  const still=state.animation==='none'&&(!state.backdropMotion||state.backdrop==='solid');
- const duration=trailer?.totalDuration??(still?1000:(6+(['letters','wave','bounce','orbit'].includes(state.animation)?1.15:state.animation==='none'?0:.85))*1000*tempo);
+ const duration=trailer?.totalDuration??(still?1000:isParticle(state.animation)?PARTICLE_DURATION*tempo:(6+(['letters','wave','bounce','orbit'].includes(state.animation)?1.15:state.animation==='none'?0:.85))*1000*tempo);
  const total=Math.round(duration/10)*10,count=still?1:Math.ceil(total*GIF_FPS/1000);
  const frames=Array.from({length:count},(_,i)=>{
   const time=Math.round(i*total/count/10)*10;
