@@ -18,6 +18,11 @@ npm test
 npm run build
 ```
 
+La regresión de la landing se ejecuta con `npm run test:landing` (Chromium de
+Playwright instalado, o `CHROME_PATH=/ruta/a/Chrome`). Observa la reproducción
+real en los tres estilos: orden de letras, cursor único, dos parpadeos finales,
+carga lenta de fuentes, escritura simultánea, resize y movimiento reducido.
+
 El resultado de `dist/` se puede publicar en cualquier alojamiento estático. No necesita backend, base de datos, API keys, cookies ni almacenamiento local. Las fuentes se sirven desde el mismo sitio.
 
 ## GitHub Pages
@@ -46,7 +51,7 @@ Máximo 280 caracteres Unicode, 12 líneas y 4096 caracteres de fragmento; la de
 
 ## Funciones
 
-- Inicio minimalista: logo, un campo de texto y «gzaas it!». Enter abre el editor con el mensaje y un estilo elegido al azar entre los 24 disponibles; Shift+Enter añade una línea. El campo crece y se encoge automáticamente con el texto, el pegado y el ancho de pantalla, sin scroll interior. Las opciones de diseño y movimiento aparecen después.
+- Inicio centrado en escribir: «gzaas!» tiene una entrada animada y una de tres combinaciones de tipografía, color y fondo elegida al abrir la landing. Reutiliza los efectos Letras, Rebote y Órbita y los fondos Malla, Aurora y Ondas. El fondo se detiene a los 4,5 segundos o al entrar en el campo; la combinación permanece estable al escribir. Respeta movimiento reducido. El subtítulo usa DM Serif Display, se escribe letra a letra y termina con dos parpadeos del cursor; con movimiento reducido aparece completo y sin cursor. El formulario mantiene una sola acción principal, «gzaas it!», sin textos auxiliares visibles. Enter abre el editor con el mensaje y un estilo elegido al azar entre los 24 disponibles; Shift+Enter añade una línea. El campo crece y se encoge automáticamente con el texto, el pegado y el ancho de pantalla, sin scroll interior. Las opciones de diseño y movimiento aparecen después.
 - Editor ajustado a la altura de la pantalla: vista previa siempre visible, controles en pestañas Texto / Estilos / Diseño / Fondos / Movimiento y acciones de compartir y descargar en la barra superior. Las pestañas se recorren con flechas, Home y End. En pantallas excepcionalmente pequeñas o con zoom, el panel de opciones permite desplazamiento sin mover la vista previa.
 - 24 estilos en cuatro colecciones de seis: Esenciales, Noche y neón, Pop y retro y Con carácter. Se recorren sin scroll.
 - Doce fuentes de Google Fonts incluidas localmente, con selector visual que muestra cada tipografía: Bebas Neue, DM Serif Display, DM Sans, Anton, Bungee, Bungee Shade, Monoton, Permanent Marker, Pacifico, Righteous, Space Grotesk y Abril Fatface.

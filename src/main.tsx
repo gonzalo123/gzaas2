@@ -21,6 +21,7 @@ import '@fontsource/abril-fatface/latin-400.css';
 import{DEFAULT,PRESETS,MAX_TEXT,encodeState,decodeState,validateState}from'./state.mjs';
 import{paint,waitFonts,type Poster}from'./render';
 import{PosterStage}from'./PosterStage';
+import {Landing} from './Landing';
 import{EditorPanel,type EditorTab}from'./EditorPanel';
 import{ExportDialog}from'./ExportDialog';
 import{ShareDialog}from'./ShareDialog';
@@ -30,6 +31,7 @@ import './wow.css';
 import './trailer.css';
 import './export.css';
 import './share.css';
+import './landing.css';
 function OriginalCredit(){return <div className="origin-credit">Inspirado en <a href="https://github.com/ojoven/gzaas" target="_blank" rel="noreferrer">Gzaas!</a>, de <a href="https://github.com/ojoven" target="_blank" rel="noreferrer">ojoven</a>.</div>}
 function Icon({name,...rest}:{name:string;[k:string]:unknown}){const p:Record<string,React.ReactNode>={replay:<><path d="M4 10a8 8 0 1 1 1 8M4 4v6h6"/></>,play:<path d="m8 5 11 7-11 7Z"/>,pause:<><path d="M9 5v14M15 5v14"/></>,shuffle:<><path d="m4 5 4 0 8 14h4M17 16l3 3-3 3M4 19h4l3-5M14 9l2-4h4M17 2l3 3-3 3"/></>,share:<><path d="M12 16V3m-4 4 4-4 4 4M5 13v7h14v-7"/></>,download:<><path d="M12 3v12m-4-4 4 4 4-4M5 17v4h14v-4"/></>,expand:<><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></>,check:<path d="m5 12 4 4L19 6"/>,close:<path d="m6 6 12 12M6 18 18 6"/>,left:<><path d="M4 5h16M4 10h10M4 15h16M4 20h10"/></>,center:<><path d="M4 5h16M7 10h10M4 15h16M7 20h10"/></>,right:<><path d="M4 5h16M10 10h10M4 15h16M10 20h10"/></>,edit:<><path d="m4 16 12-12 4 4L8 20H4v-4ZM14 6l4 4"/></>};return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...rest}>{p[name]||p.check}</svg>}
 function initial(){try{return location.hash ? {state:decodeState(location.hash.replace('#edit:','#')),view:!location.hash.startsWith('#edit:'),error:''}:{state:DEFAULT,view:false,error:''};}catch(e){return {state:DEFAULT,view:false,error:(e as Error).message};}}
@@ -41,21 +43,11 @@ function App(){
  const[editorTab,setEditorTab]=useState<EditorTab>('message');
  const[exportOpen,setExportOpen]=useState(false);
  const stateRef=useRef(state);stateRef.current=state;
- const landingInput=useRef<HTMLTextAreaElement>(null);
  const toastTimer=useRef<ReturnType<typeof setTimeout>>(undefined),exitTimer=useRef<ReturnType<typeof setTimeout>>(undefined);
  function notify(s:string){setToast(s);clearTimeout(toastTimer.current);toastTimer.current=setTimeout(()=>setToast(''),3000);}
  function patch(p:Partial<Poster>){setState(prev=>({...prev,...p}));setPaused(false);}
  function restart(){setReplay(n=>n+1);setPaused(false);}
  function getUrl(){return location.href.split('#')[0]+encodeState(state);}
- useLayoutEffect(()=>{
-  const input=landingInput.current;if(!landing||!input)return;
-  let active=true,width=input.clientWidth;
-  const resize=()=>{input.style.height='auto';input.style.height=`${input.scrollHeight+input.offsetHeight-input.clientHeight}px`;};
-  resize();
-  const observer=new ResizeObserver(()=>{if(input.clientWidth!==width){width=input.clientWidth;resize();}});observer.observe(input);
-  document.fonts.ready.then(()=>{if(active)resize();});
-  return()=>{active=false;observer.disconnect();};
- },[draft,landing]);
  useEffect(()=>{const onHash=()=>{clearTimeout(exitTimer.current);setClosing(false);setShareOpen(false);setExportOpen(false);setPaused(false);try{if(location.hash){setState(decodeState(location.hash.replace('#edit:','#')));setView(!location.hash.startsWith('#edit:'));setLanding(false);}else{setView(false);setLanding(true);setDraft('');}setError('');}catch(e){setError((e as Error).message);setView(false);setLanding(true);}};addEventListener('hashchange',onHash);return()=>removeEventListener('hashchange',onHash);},[]);
  useEffect(()=>{const esc=(e:KeyboardEvent)=>{if(e.key==='Escape'&&!shareOpen&&!exportOpen)edit();};addEventListener('keydown',esc);return()=>removeEventListener('keydown',esc);},[view,shareOpen,exportOpen]);
  useLayoutEffect(()=>{
@@ -83,7 +75,7 @@ function App(){
  function edit(){if(!view||closing)return;setClosing(true);exitTimer.current=setTimeout(()=>{setView(false);setClosing(false);if(document.fullscreenElement)void document.exitFullscreen();},matchMedia('(prefers-reduced-motion: reduce)').matches?0:320);}
  function createMessage(){try{const{name,sample,...style}=PRESETS[Math.floor(Math.random()*PRESETS.length)];setState(validateState({...DEFAULT,...style,text:draft}));setError('');setPaused(false);setView(false);setLanding(false);window.scrollTo(0,0);}catch(e){setError((e as Error).message);}}
  return <div className={landing?'app landing':view?`app viewer${controlsVisible?' controls-visible':''}${closing?' viewer-closing':''}`:'app edit-app'}>
- {landing&&<main className="landing-content"><h1 className="landing-logo" aria-label="gzaas!">gzaas<span>!</span></h1><p className="landing-tagline">Tus mensajes, a toda pantalla.</p><form className="landing-form" onSubmit={e=>{e.preventDefault();createMessage();}}><label className="sr-only" htmlFor="landing-message">Tu mensaje</label><textarea id="landing-message" ref={landingInput} rows={2} value={draft} placeholder="Escribe tu mensaje…" aria-invalid={!!error} aria-describedby={error?'landing-error':undefined} onChange={e=>{setDraft([...e.target.value].slice(0,MAX_TEXT).join(''));setError('');}} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();if(draft.trim())createMessage();}}} spellCheck={false}/>{error&&<p id="landing-error" className="field-error" role="alert">{error}</p>}<div className="landing-actions"><button className="landing-submit" type="submit" disabled={!draft.trim()}>gzaas it!</button></div></form></main>}
+ {landing&&<Landing draft={draft} error={error} onDraft={text=>{setDraft(text);setError('');}} onCreate={createMessage}/>}
  {!landing&&!view&&<><header className="topbar"><a className="logo" href={location.pathname} aria-label="Gzaas, inicio">gzaas<span>!</span></a><span className="editor-context">Dale tu toque.</span><div className="editor-actions"><button className="icon-button" aria-label="Sorpréndeme" title="Sorpréndeme" onClick={surprise}><Icon name="shuffle"/></button><button className="button secondary download-button" aria-label={busy?'Preparando imagen':'Descargar mensaje'} title="Descargar PNG o GIF" disabled={invalid||busy} onClick={()=>setExportOpen(true)}><Icon name="download"/><span>{busy?'Preparando…':'Descargar'}</span></button><button className="button primary" onClick={share} disabled={invalid}><Icon name="share"/>Compartir</button></div></header>
  <main className="edit-main">
  {error&&<div role="alert" className="error"><span>{error}</span><button onClick={()=>{setError('');history.replaceState(null,'',location.pathname+location.search);}} aria-label="Cerrar aviso"><Icon name="close"/></button></div>}
