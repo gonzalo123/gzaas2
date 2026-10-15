@@ -19,13 +19,18 @@ export const BACKDROPS = [
  {id:'solid',name:'Liso'}, {id:'silk',name:'Seda (Silk)'}, {id:'aurora',name:'Aurora'}, {id:'mesh',name:'Nubes'}, {id:'sunset',name:'Atardecer'},
  {id:'rays',name:'Rayos'}, {id:'stars',name:'Constelación'}, {id:'checker',name:'Ajedrez'}, {id:'waves',name:'Ondas'},
  {id:'iridescence',name:'Iridescencia'}, {id:'threads',name:'Hilos'}, {id:'color-bends',name:'Color Bends'},
+ {id:'plasma',name:'Plasma'}, {id:'gradient-blinds',name:'Persianas'}, {id:'light-rays',name:'Rayos de luz'}, {id:'balatro',name:'Balatro'},
+ {id:'orb',name:'Orbe'}, {id:'lightning',name:'Relámpagos'}, {id:'dither',name:'Trama retro'}, {id:'dot-grid',name:'Puntos vivos'},
+ {id:'ripple-grid',name:'Cuadrícula líquida'}, {id:'waves-lines',name:'Ondas de líneas'}, {id:'pixel-snow',name:'Nieve pixelada'}, {id:'floating-lines',name:'Líneas flotantes'},
 ];
+export const REACT_BITS_MORE_BACKDROPS = ['orb','lightning','dither','dot-grid','ripple-grid','waves-lines','pixel-snow','floating-lines'];
+export const REACT_BITS_BACKDROPS = ['silk','iridescence','threads','color-bends','plasma','gradient-blinds','light-rays','balatro',...REACT_BITS_MORE_BACKDROPS];
 export const BACKDROP_COLLECTIONS = [
- {name:'Ambientes',ids:['solid','aurora','mesh','sunset']},
- {name:'Gráficos',ids:['rays','stars','checker','waves']},
- {name:'React Bits',ids:['silk','iridescence','threads','color-bends']},
+ {name:'Ambientes y gráficos',ids:['solid','aurora','mesh','sunset','rays','stars','checker','waves']},
+ {name:'React Bits',ids:REACT_BITS_BACKDROPS.slice(0,8)},
+ {name:'React Bits II',ids:REACT_BITS_MORE_BACKDROPS},
 ];
-export const isReactBitsBackdrop = id => BACKDROP_COLLECTIONS[2].ids.includes(id);
+export const isReactBitsBackdrop = id => REACT_BITS_BACKDROPS.includes(id);
 export const backdropCollection = id => Math.max(0,BACKDROP_COLLECTIONS.findIndex(collection=>collection.ids.includes(id)));
 export const COLLECTIONS = ['Esenciales','Noche y neón','Pop y retro','Con carácter'];
 export const ANIMATIONS = [

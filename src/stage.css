@@ -177,7 +177,12 @@
  .edit-app .preview-bottom{height:28px;margin-top:6px}
  .edit-app .editor-tabs button{padding:6px 4px 5px}
 }
+@media(max-width:899px){
+ .edit-app .panel-background .backdrop-options{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
 @media(max-width:760px){
+ .edit-app .panel-background{gap:10px}
+ .edit-app .panel-background .backdrop-choice svg{height:28px}
  .edit-app,.edit-app:has(.editor-panel){--tray-h:clamp(190px,36dvh,330px)}
  .edit-app .topbar{height:52px;margin:0 14px;gap:10px}
  .edit-app .logo{font-size:28px;letter-spacing:-2px}

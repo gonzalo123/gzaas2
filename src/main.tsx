@@ -24,6 +24,7 @@ import{paint,waitFonts,type Poster}from'./render';
 import{PosterStage}from'./PosterStage';
 import {Landing} from './Landing';
 import {useRoulette} from './useRoulette';
+import {randomStyle} from './roulette.mjs';
 import{EditorPanel,type EditorTab}from'./EditorPanel';
 import{ExportDialog}from'./ExportDialog';
 import{ShareDialog}from'./ShareDialog';
@@ -84,24 +85,23 @@ function App(){
  async function download(){setBusy(true);try{await waitFonts(state);const canvas=document.createElement('canvas');const [w,h]=ratio==='square'?[1600,1600]:ratio==='portrait'?[1200,1600]:[1920,1440];await paint(canvas,state,w,h);const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('No se pudo crear la imagen.')),'image/png'));const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='gzaas.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);notify('Tu imagen está lista.');}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
  function surprise(){
   if(roulette.spinning)return;
-  const current=PRESETS.findIndex(p=>p.bg===state.bg);let idx;do{idx=Math.floor(Math.random()*PRESETS.length);}while(idx===current);
-  const keep={backdrop:state.backdrop,accent:state.accent,backdropMotion:state.backdropMotion};
-  // Flashes stay light (no particles/3D); only the landing preset brings its own animation.
-  roulette.spin(idx,(i,final)=>{const{name,sample,...style}=PRESETS[i];patch(final?style:{...keep,...style,animation:'none'});},()=>notify(PRESETS[idx].name));
+  const {index:idx,style:chosen}=randomStyle(state);
+  // Classic stills keep the flashes light; the final frame uses the chosen design.
+  roulette.spin(idx,(i,final)=>{const{name,sample,...style}=PRESETS[i];patch(final?chosen:{...style,animation:'none',backdropMotion:false});},()=>notify(PRESETS[idx].name));
  }
  function fullScreen(){clearTimeout(exitTimer.current);setClosing(false);setPaused(false);setControlsVisible(false);setView(true);}
  function edit(){if(!view||closing)return;setClosing(true);exitTimer.current=setTimeout(()=>{setView(false);setClosing(false);if(document.fullscreenElement)void document.exitFullscreen();},matchMedia('(prefers-reduced-motion: reduce)').matches?0:320);}
  function createMessage(){
   if(roulette.spinning)return;
   try{
-   const idx=Math.floor(Math.random()*PRESETS.length),styleOf=(i:number)=>{const{name,sample,...style}=PRESETS[i];return style;};
-   const next=validateState({...DEFAULT,...styleOf(idx),text:draft});
+   const {index:idx,style}=randomStyle(undefined),styleOf=(i:number)=>{const{name,sample,...preset}=PRESETS[i];return preset;};
+   const next=validateState({...DEFAULT,...style,text:draft});
    const enter=()=>{
     const commit=()=>{flushSync(()=>{setState(next);setError('');setPaused(false);setView(false);setLanding(false);setFlash(null);});window.scrollTo(0,0);};
     const transition=(document as Document&{startViewTransition?:(cb:()=>void)=>unknown}).startViewTransition;
     if(transition&&!matchMedia('(prefers-reduced-motion: reduce)').matches)transition.call(document,commit);else commit();
    };
-   roulette.spin(idx,(i,final)=>setFlash({...DEFAULT,...styleOf(i),...(final?{}:{animation:'none'})}),()=>{
+   roulette.spin(idx,(i,final)=>setFlash(final?next:{...DEFAULT,...styleOf(i),animation:'none',backdropMotion:false}),()=>{
     notify(PRESETS[idx].name);
     // Let the chosen style play for a beat before the poster flies into the editor.
     holdTimer.current=setTimeout(enter,matchMedia('(prefers-reduced-motion: reduce)').matches?0:900);

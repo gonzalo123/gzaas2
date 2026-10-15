@@ -83,7 +83,8 @@ Máximo 280 caracteres Unicode, 12 líneas y 4096 caracteres de fragmento; la de
 - Editor ajustado a la altura de la pantalla: vista previa siempre visible, controles en pestañas Texto / Estilos / Diseño / Fondos / Movimiento y acciones de compartir y descargar en la barra superior. Las pestañas se recorren con flechas, Home y End. En pantallas excepcionalmente pequeñas o con zoom, el panel de opciones permite desplazamiento sin mover la vista previa.
 - 24 estilos en cuatro colecciones de seis: Esenciales, Noche y neón, Pop y retro y Con carácter. Se recorren sin scroll.
 - Doce fuentes de Google Fonts incluidas localmente, con selector visual que muestra cada tipografía: Bebas Neue, DM Serif Display, DM Sans, Anton, Bungee, Bungee Shade, Monoton, Permanent Marker, Pacifico, Righteous, Space Grotesk y Abril Fatface.
-- Nueve fondos: liso, seda (Silk), aurora, nubes, atardecer, rayos, constelación, ajedrez y ondas; colores base y acento editables y movimiento independiente del texto. Texturas opcionales, sombras, contorno, neón y eco 3D.
+- Veinticuatro fondos en tres colecciones de ocho, navegables como los estilos: Ambientes y gráficos; React Bits (Seda, Iridescencia, Hilos, Color Bends, Plasma, Persianas, Rayos de luz y Balatro); y React Bits II (Orbe, Relámpagos, Trama retro, Puntos vivos, Cuadrícula líquida, Ondas de líneas, Nieve pixelada y Líneas flotantes). Colores base y acento editables y movimiento independiente del texto. Texturas opcionales, sombras, contorno, neón y eco 3D.
+- «Sorpréndeme» sortea la paleta y el fondo de forma independiente entre todos los estilos y las tres colecciones de fondos; evita repetir la paleta y el fondo activos. Al crear un mensaje desde el inicio también puede salir cualquiera de los 24 fondos. Las transiciones de la ruleta usan diseños estáticos y el resultado final conserva el fondo elegido.
 - Diseño adaptable a móvil y escritorio, con vista de lectura a toda pantalla.
 - Enlace comprimido, portapapeles con alternativa manual y Web Share cuando existe. Imagen o GIF junto al enlace en dispositivos compatibles, y miniatura social común para enlaces pegados.
 - Descarga local en PNG o GIF desde el mismo selector, en 4:3, 1:1 y 3:4. El GIF incluye letras, fondos y todas las escenas del tráiler, con ritmo y bucle configurados; muestra progreso, permite cancelar y ofrece una vista previa antes de descargar. El PNG mantiene el mensaje completo en alta resolución.
@@ -274,11 +275,26 @@ Guarda capturas y un GIF en `/tmp/gzaas-galaxy-check` (configurable con
 Quedan para una siguiente iteración mediciones en móviles de gama baja y
 Safari/Firefox, adaptación de calidad basada en tiempos GPU y morphing continuo.
 
-## Fondo Seda (Silk)
+## Fondos React Bits y colecciones
 
-Adaptación del efecto [Silk de React Bits](https://reactbits.dev/backgrounds/silk),
-con los colores Base y Acento del cartel. Se carga bajo demanda, sin dependencias
-nuevas. El editor, el visor y las descargas usan el mismo renderizador por tiempo:
+Adaptaciones de [Silk](https://reactbits.dev/backgrounds/silk),
+[Iridescence](https://reactbits.dev/backgrounds/iridescence),
+[Threads](https://reactbits.dev/backgrounds/threads),
+[Color Bends](https://reactbits.dev/backgrounds/color-bends),
+[Plasma](https://reactbits.dev/backgrounds/plasma),
+[Gradient Blinds](https://reactbits.dev/backgrounds/gradient-blinds),
+[Light Rays](https://reactbits.dev/backgrounds/light-rays) y
+[Balatro](https://reactbits.dev/backgrounds/balatro),
+[Orb](https://reactbits.dev/backgrounds/orb),
+[Lightning](https://reactbits.dev/backgrounds/lightning),
+[Dither](https://reactbits.dev/backgrounds/dither),
+[Dot Grid](https://reactbits.dev/backgrounds/dot-grid),
+[Ripple Grid](https://reactbits.dev/backgrounds/ripple-grid),
+[Waves](https://reactbits.dev/backgrounds/waves),
+[Pixel Snow](https://reactbits.dev/backgrounds/pixel-snow) y
+[Floating Lines](https://reactbits.dev/backgrounds/floating-lines), con los colores Base
+y Acento del cartel. Se cargan bajo demanda, sin dependencias nuevas. El editor,
+el visor y las descargas usan el mismo renderizador por tiempo:
 PNG toma el fotograma estático inicial y GIF conserva el movimiento. El ciclo del
 fondo dura 6 segundos con ritmo normal y se ajusta al ritmo elegido; cuando el
 texto o el tráiler duran más, se recorta a la duración de esa exportación.
@@ -286,14 +302,32 @@ texto o el tráiler duran más, se recorta a la duración de esa exportación.
 La vista previa limita el lado mayor a 1.200 píxeles y la reproducción a 30 fps;
 se detiene al pausar, ocultar la pestaña o quedar fuera de pantalla. Respeta
 «Animar el fondo» y movimiento reducido. Las miniaturas usan Canvas 2D, sin
-contextos WebGL. Si WebGL no está disponible o se pierde, se dibujan los mismos
-pliegues por software a un máximo de 480 píxeles, también al exportar, con la
-vista previa limitada a 15 fps.
+contextos WebGL. Los efectos de la primera colección salvo Threads usan shaders con una alternativa
+por software que evalúa las mismas ecuaciones si WebGL no está disponible o se
+pierde: máximo de 480 píxeles para Silk, 192 para Plasma, 256 para Balatro y
+320 para los restantes, también al exportar, con la vista previa limitada a
+15 fps. Plasma usa 32 pasos de muestreo volumétrico y Balatro conserva una
+cuadrícula lógica de 240 celdas para su acabado pixelado. Threads dibuja sus líneas en
+Canvas 2D a la resolución de salida, sin necesitar WebGL. Los ocho fondos de
+React Bits II también usan Canvas 2D: halo y luz orbital, campos de ruido para
+relámpagos y líneas, trama Bayer 8×8, cuadrículas deformables, copos pixelados
+con distribución fija y tres bandas de líneas flotantes. Sus movimientos
+periódicos sustituyen la interacción con el cursor del original y se reproducen
+igual al exportar; no necesitan GPU ni recursos externos.
+
+«Fondos» muestra ocho opciones por colección: dos columnas en el panel lateral
+y cuatro columnas en la bandeja inferior. Las flechas recorren Ambientes y
+gráficos, React Bits y React Bits II sin cambiar el diseño.
+Un enlace o un cambio de estilo abre la colección del fondo seleccionado; los
+identificadores anteriores y los enlaces `v1` se conservan.
 
 `npm run test:silk` comprueba selector y enlaces, pausa y repetición, movimiento
 reducido, móvil, fotogramas deterministas, PNG, GIF decodificado, cancelación,
 combinación con texto/partículas/Galaxy/tráiler y alternativa sin WebGL.
 Admite `CHROME_PATH` y guarda capturas y descargas en `/tmp/gzaas-silk-check`.
+`npm run test:backgrounds` comprueba las colecciones, la cuadrícula móvil y los
+fondos de React Bits, incluyendo PNG, GIF decodificado y alternativa sin WebGL.
+Sus capturas y archivos se guardan en `/tmp/gzaas-backgrounds-check`.
 
 ## Créditos
 
@@ -314,7 +348,10 @@ Abre `gzaas-preview.html` en un navegador moderno. Incluye el código, CSS y fue
 
 Build de producción y comprobación TypeScript correctos. Treinta y nueve tests: nueve de partículas, siete de su integración y mezcla en tráiler, tres de archivos compartidos, enlaces públicos y compatibilidad; diez del formato de URL, incluyendo todas las combinaciones de fuentes, fondos y efectos, animación, ritmo y repetición y compatibilidad con enlaces antiguos; cinco de segmentación, grafemas, secuencias, tiempos, cierre y bucles del tráiler; cinco de proporciones, fotogramas, tiempos GIF, secuencias completas y exportación estática. Revisión visual e interacción en Chrome en escritorio y móvil: colecciones, selector de fuentes, animación por letras y de fondos, pausa, repetición, visor, enlaces compartidos, créditos y movimiento reducido. Exportación GIF comprobada sin conexión desde la demo HTML: fuentes, efectos, tráiler completo, bucle, cancelación y PNG; archivos GIF decodificados para verificar fotogramas, tiempos y proporciones. El diálogo cabe sin scroll en las nueve resoluciones de escritorio y móvil revisadas. Compartir PNG y GIF con enlace comprobado con un menú nativo simulado, incluyendo activación del usuario, cancelación y descarga alternativa; no se ha enviado a WhatsApp. Metadatos sociales estáticos e imagen PNG de 1200 × 630 comprobados en el build; la tarjeta en apps de terceros se comprobará tras publicar. La integración WebMCP no se ha validado en un navegador que la implemente.
 
-El fondo Seda adapta la ecuación de pliegues de **React Bits, David Haz**, bajo
+Los fondos Silk, Iridescence, Threads, Color Bends, Plasma, Gradient Blinds,
+Light Rays, Balatro, Orb, Lightning, Dither, Dot Grid, Ripple Grid, Waves,
+Pixel Snow y Floating Lines adaptan los efectos de
+**React Bits, David Haz**, bajo
 MIT + Commons Clause. Su licencia se conserva en
 [`public/licenses/react-bits.txt`](public/licenses/react-bits.txt), también incluida
 en la copia de demostración HTML. La adaptación incorpora dos colores, un ciclo

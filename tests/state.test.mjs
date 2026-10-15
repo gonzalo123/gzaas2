@@ -1,16 +1,16 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {DEFAULT,PRESETS,ANIMATIONS,FONTS,BACKDROPS,encodeState,decodeState,validateState} from '../src/state.mjs';
 import LZString from 'lz-string';
-import {BACKDROP_COLLECTIONS,backdropCollection,isReactBitsBackdrop} from '../src/state.mjs';
+import {BACKDROP_COLLECTIONS,REACT_BITS_BACKDROPS,backdropCollection,isReactBitsBackdrop} from '../src/state.mjs';
 test('background collections cover the catalog once and locate old/shared designs',()=>{
  const ids=BACKDROP_COLLECTIONS.flatMap(c=>c.ids);
  assert.equal(new Set(ids).size,ids.length);
  assert.deepEqual([...ids].sort(),BACKDROPS.map(b=>b.id).sort());
  for(const [index,collection] of BACKDROP_COLLECTIONS.entries()){
-  assert.ok(collection.ids.length<=6);
+  assert.equal(collection.ids.length,8);
   for(const id of collection.ids)assert.equal(backdropCollection(id),index);
  }
- for(const id of ['silk','iridescence','threads','color-bends'])assert.ok(isReactBitsBackdrop(id));
+ for(const id of REACT_BITS_BACKDROPS)assert.ok(isReactBitsBackdrop(id));
  for(const id of ['solid','aurora','waves','unknown'])assert.equal(isReactBitsBackdrop(id),false);
 });
 test('share round-trip preserves Spanish, emoji, line breaks and every style',()=>{for(const {name,sample,...style} of PRESETS){const s={...DEFAULT,...style,text:'¡Qué alegría! 👩🏽‍💻\n日本語 + / # & = <script>alert(1)</script>',align:'right',size:67,animation:'float'};assert.deepEqual(decodeState(encodeState(s)),s);}});

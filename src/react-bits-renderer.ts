@@ -6,6 +6,9 @@
  * no pointer input, so sharing and export reproduce the selected design.
  */
 import {createShaderRenderer,createSilkRenderer,type ShaderPattern,type Palette} from './silk-renderer';
+import {extraPatterns} from './react-bits-patterns';
+import {createCanvasBackdrop} from './react-bits-canvas';
+import {perlin} from './react-bits-noise';
 
 const header=`precision highp float;
 uniform vec2 resolution;
@@ -71,17 +74,6 @@ void main(){
 
 // Port of Threads' Perlin2D lattice noise. Geometry is inexpensive to draw
 // directly in Canvas: thumbnails, preview and exports need no GPU context.
-function perlin(x:number,y:number){
- const ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy;
- const fade=(t:number)=>t*t*t*(t*(t*6-15)+10),bx=fade(fx),by=fade(fy);
- let result=0;
- for(let j=0;j<2;j++)for(let i=0;i<2;i++){
-  const px=((ix+i)%71+71)%71+26,py=((iy+j)%71+71)%71+161,hash=px*px*py*py;
-  const gx=(hash/951.135664)%1-.49999,gy=(hash/642.949883)%1-.49999;
-  result+=(gx*(fx-i)+gy*(fy-j))/Math.hypot(gx,gy)*Math.SQRT2*(i?bx:1-bx)*(j?by:1-by);
- }
- return result;
-}
 const smooth=(a:number,b:number,x:number)=>{const t=clamp((x-a)/(b-a));return t*t*(3-2*t);};
 function createThreadsRenderer(state:Palette,width:number,height:number){
  const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(width));canvas.height=Math.max(1,Math.round(height));
@@ -117,6 +109,12 @@ export function createReactBitsRenderer(state:Palette&{backdrop:string},width:nu
   case 'threads':return createThreadsRenderer(state,width,height);
   case 'iridescence':return createShaderRenderer(state,width,height,software,iridescence);
   case 'color-bends':return createShaderRenderer(state,width,height,software,colorBends);
-  default:throw Error('Fondo no compatible.');
+  default:{
+   const canvas=createCanvasBackdrop(state,width,height);
+   if(canvas)return canvas;
+   const pattern=extraPatterns[state.backdrop];
+   if(pattern)return createShaderRenderer(state,width,height,software,pattern);
+   throw Error('Fondo no compatible.');
+  }
  }
 }

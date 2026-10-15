@@ -4,6 +4,7 @@ import {chromium} from 'playwright';
 import {spawn} from 'node:child_process';
 import {mkdir} from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import {BACKDROPS,BACKDROP_COLLECTIONS,DEFAULT,encodeState,decodeState,isReactBitsBackdrop} from '../src/state.mjs';
 const base=process.env.TEST_BASE_URL||'http://127.0.0.1:4176';
 const output=process.env.TEST_ARTIFACTS||'/tmp/gzaas-landing-check';
 const server=process.env.TEST_BASE_URL?null:spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','127.0.0.1','--port','4176','--strictPort'],{stdio:'ignore'});
@@ -14,6 +15,7 @@ try{
  browser=await chromium.launch({executablePath:process.env.CHROME_PATH||undefined,headless:true});
  const errors=[];
  for(const [index,random] of [0,.4,.8].entries()){
+  console.log(`Checking landing theme ${index+1}/3…`);
   const page=await browser.newPage({locale:'es-ES',viewport:{width:976,height:571}});
   page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(value=>Math.random=()=>value,random);
@@ -50,7 +52,11 @@ try{
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   await page.screenshot({path:`${output}/fixed-mobile-${index}.png`});
   await page.setViewportSize({width:976,height:571});await page.screenshot({path:`${output}/fixed-desktop-${index}.png`});
-  await page.getByRole('textbox',{name:'Tu mensaje',exact:true}).press('Enter');await page.locator('.edit-app').waitFor();
+  await page.getByRole('textbox',{name:'Tu mensaje',exact:true}).press('Enter');
+  try{await page.locator('.edit-app').waitFor();}catch(error){
+   await page.screenshot({path:`${output}/failed-submit-${index}.png`});
+   console.log({index,errors,landingError:await page.locator('#landing-error').allTextContents()});throw error;
+  }
   await page.close();
  }
  const reduced=await browser.newPage({locale:'es-ES',reducedMotion:'reduce'});
@@ -62,7 +68,44 @@ try{
  // Changing the preference during playback also completes the text immediately.
  await reduced.reload();await reduced.waitForTimeout(500);await reduced.emulateMedia({reducedMotion:'reduce'});
  assert.ok(await reduced.locator('.landing-type-char').evaluateAll(chars=>chars.every(c=>getComputedStyle(c).visibility==='visible')));
+ // Drive the real random actions with known draws: every background must be
+ // reachable from Surprise, and each collection from the landing submission.
+ const installRandom=page=>page.evaluate(()=>{
+  const native=Math.random;window.randomDraws=[];
+  Math.random=()=>window.randomDraws.length?window.randomDraws.shift():native();
+ });
+ const draws=(page,values)=>page.evaluate(values=>window.randomDraws=values,values);
+ const current=page=>decodeState(new URL(page.url()).hash.replace('#edit:','#'));
+ await reduced.goto(base+'/'+encodeState({...DEFAULT,text:'AZAR EN TODAS LAS COLECCIONES'}).replace('#','#edit:'));
+ await installRandom(reduced);await reduced.getByRole('tab',{name:'Fondos',exact:true}).click();
+ for(const target of BACKDROPS){
+  const before=current(reduced),pool=BACKDROPS.filter(b=>b.id!==before.backdrop),index=pool.findIndex(b=>b.id===target.id);
+  await draws(reduced,[.4,(index+.5)/pool.length]);
+  await reduced.getByRole('button',{name:'Sorpréndeme',exact:true}).click();
+  await reduced.waitForURL(u=>decodeState(u.hash.replace('#edit:','#')).backdrop===target.id);
+  assert.equal(current(reduced).text,before.text);assert.notEqual(current(reduced).bg,before.bg);
+  assert.equal(await reduced.getByRole('button',{name:target.name,exact:true}).getAttribute('aria-pressed'),'true');
+  if(isReactBitsBackdrop(target.id))await reduced.waitForSelector(`.backdrop-canvas[data-backdrop="${target.id}"][data-backend]`);
+ }
+ await reduced.screenshot({path:output+'/random-all-backgrounds.png'});
+ // Normal roulette must retain the chosen background when the flashes finish.
+ await reduced.emulateMedia({reducedMotion:'no-preference'});
+ const pool=BACKDROPS.filter(b=>b.id!==current(reduced).backdrop),target=pool.findIndex(b=>b.id==='orb');
+ await draws(reduced,[.4,(target+.5)/pool.length]);await reduced.getByRole('button',{name:'Sorpréndeme',exact:true}).click();
+ await reduced.waitForURL(u=>decodeState(u.hash.replace('#edit:','#')).backdrop==='orb');
+ assert.equal(await reduced.getByRole('button',{name:'Sorpréndeme',exact:true}).isEnabled(),true);
+ await reduced.emulateMedia({reducedMotion:'reduce'});
+ for(const collection of BACKDROP_COLLECTIONS){
+  const id=collection.ids.at(-1);
+  await reduced.goto(base);await installRandom(reduced);
+  await reduced.getByRole('textbox',{name:'Tu mensaje',exact:true}).fill('Un fondo de '+collection.name);
+  await draws(reduced,[.3,(BACKDROPS.findIndex(b=>b.id===id)+.5)/BACKDROPS.length]);
+  await reduced.getByRole('textbox',{name:'Tu mensaje',exact:true}).press('Enter');await reduced.locator('.edit-app').waitFor();
+  await reduced.waitForURL(u=>u.hash.startsWith('#edit:')&&decodeState(u.hash.replace('#edit:','#')).backdrop===id);
+  assert.equal(current(reduced).text,'Un fondo de '+collection.name);
+ }
  await reduced.close();assert.deepEqual(errors,[]);
+ console.log('PASS: Surprise reaches all 24 backgrounds, avoids immediate repeats, selects the matching collection, and normal roulette/landing keep the chosen design.');
  console.log('PASS: three themes, real playback without holes or duplicate cursors, two final blinks, delayed fonts, typing, resize, stalled frames, reduced motion, editor navigation.');
  console.log(`Artifacts: ${output}`);
 }finally{await browser?.close();server?.kill();}

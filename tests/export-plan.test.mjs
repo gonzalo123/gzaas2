@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {exportDimensions,exportPlan,GIF_FPS} from '../src/export-plan.mjs';
-import {DEFAULT,ANIMATIONS} from '../src/state.mjs';
+import {DEFAULT,ANIMATIONS,REACT_BITS_BACKDROPS} from '../src/state.mjs';
 import {buildTrailer} from '../src/trailer.mjs';
 
 test('GIF dimensions preserve each poster ratio and bound the longest side',()=>{
@@ -28,10 +28,10 @@ test('the trailer export includes every scene and ends on the complete original 
  assert.equal(final.state.fg,state.fg);assert.equal(final.state.bg,state.bg);
 });
 test('static posters use one frame; moving backgrounds remain animated',()=>{
- for(const backdrop of ['solid','waves','silk','iridescence','threads','color-bends'])assert.equal(exportPlan({...DEFAULT,animation:'none',backdrop,backdropMotion:false}).frames.length,1);
+ for(const backdrop of ['solid','waves',...REACT_BITS_BACKDROPS])assert.equal(exportPlan({...DEFAULT,animation:'none',backdrop,backdropMotion:false}).frames.length,1);
  assert.equal(exportPlan({...DEFAULT,animation:'none',backdrop:'solid',backdropMotion:true}).frames.length,1);
  assert.ok(exportPlan({...DEFAULT,animation:'none',backdrop:'waves',backdropMotion:true}).frames.length>1);
- for(const backdrop of ['silk','iridescence','threads','color-bends'])assert.ok(exportPlan({...DEFAULT,animation:'none',backdrop,backdropMotion:true}).frames.length>1);
+ for(const backdrop of REACT_BITS_BACKDROPS)assert.ok(exportPlan({...DEFAULT,animation:'none',backdrop,backdropMotion:true}).frames.length>1);
 });
 test('single playback waits for all staggered letters before holding the final frame',()=>{
  for(const pace of ['slow','normal','fast']){

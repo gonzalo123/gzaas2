@@ -1,5 +1,18 @@
 // Style roulette: fast flashes that decelerate and land on a chosen preset.
+import {BACKDROPS,PRESETS} from './state.mjs';
 export const ROULETTE_STEPS = 7;
+
+/** Pick a palette and a background independently across the complete catalogs.
+ * @param {{bg?:string,backdrop?:string}|undefined} current
+ * @param {()=>number} random
+ */
+export function randomStyle(current,random=Math.random){
+  const presets=PRESETS.map((preset,index)=>({preset,index})).filter(({preset})=>preset.bg!==current?.bg);
+  const backgrounds=BACKDROPS.filter(background=>background.id!==current?.backdrop);
+  const {preset,index}=presets[Math.floor(random()*presets.length)];
+  const {name,sample,...style}=preset;
+  return {index,style:{...style,backdrop:backgrounds[Math.floor(random()*backgrounds.length)].id,backdropMotion:true}};
+}
 
 // Delays ease out from ~70 ms to ~380 ms (≈1.4 s in total).
 export function rouletteSchedule(steps = ROULETTE_STEPS) {

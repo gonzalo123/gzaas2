@@ -23,7 +23,7 @@ try{
  await page.goto(url({...state,backdrop:'solid'},true));await page.waitForTimeout(300);
  assert.ok(!requests.some(r=>r.includes('silk-renderer')),'other backgrounds do not load Silk');
  await page.getByRole('tab',{name:'Fondos',exact:true}).click();
- await page.getByRole('button',{name:'Colección de fondos anterior',exact:true}).click();
+ await page.getByRole('button',{name:'Colección de fondos siguiente',exact:true}).click();
  const choice=page.getByRole('button',{name:'Seda (Silk)',exact:true});
  await choice.click();
  const canvas=page.locator('.poster-art .backdrop-canvas');
