@@ -4,7 +4,7 @@ import {readFileSync,readdirSync} from 'node:fs';
 import ts from 'typescript';
 import english from '../src/locales/en.mjs';
 import {detectLocale,readLocale,translate,LOCALE_KEY,setLocale,getLocale,subscribeLocale} from '../src/i18n.mjs';
-import {ANIMATIONS,BACKDROPS,COLLECTIONS,FONTS,PRESETS} from '../src/state.mjs';
+import {ANIMATIONS,BACKDROPS,BACKDROP_COLLECTIONS,COLLECTIONS,FONTS,PRESETS} from '../src/state.mjs';
 
 test('language negotiation uses saved choice, then ordered browser languages, then English',()=>{
  assert.equal(detectLocale('es',['en-US']),'es');
@@ -43,7 +43,7 @@ test('translation interpolates data once and keeps placeholder sets in sync',()=
 });
 test('every UI translation key and localized style description has an English entry',()=>{
  const unchanged=new Set(['Particle Galaxy 3D','Fade in / out','STAY\nWILD','AFTER\nHOURS','KEEP\nDREAMING','DANCE\nWITH ME','MAKE\nSOME NOISE','OH\nYEAH!','LEVEL\nUP!','GOOD\nVIBES','SO\nSWEET','Take it\neasy.','GROOVY\nBABY','Believe\nin magic.']);
- const keys=[...ANIMATIONS.flatMap(a=>[a.name,a.description]),...BACKDROPS.map(b=>b.name),...COLLECTIONS,...FONTS.map(f=>f.mood),...PRESETS.flatMap(p=>[p.name,p.sample])];
+ const keys=[...ANIMATIONS.flatMap(a=>[a.name,a.description]),...BACKDROPS.map(b=>b.name),...BACKDROP_COLLECTIONS.map(c=>c.name),...COLLECTIONS,...FONTS.map(f=>f.mood),...PRESETS.flatMap(p=>[p.name,p.sample])];
  for(const file of readdirSync('src').filter(f=>f.endsWith('.tsx'))){
   const ast=ts.createSourceFile(file,readFileSync('src/'+file,'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
   function visit(node){if(ts.isCallExpression(node)&&node.expression.getText(ast)==='t'&&ts.isStringLiteral(node.arguments[0]))keys.push(node.arguments[0].text);ts.forEachChild(node,visit);}visit(ast);

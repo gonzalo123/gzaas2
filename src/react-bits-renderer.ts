@@ -60,7 +60,7 @@ void main(){
  let x=-(v*2-1)*aspect,y=u*2-1;
  const divisor=.5+.2*(x*x+y*y),offset=.2*Math.cos(phase)-7.56,time=.8*Math.sin(phase);
  x=x/divisor+offset;y=y/divisor+offset;
- const weights=[];
+ const weights:number[]=[];
  for(let i=0;i<2;i++){
   x-=.01;y-=.01;
   const rx=Math.sin(1.5*y+2*Math.cos(x)),ry=Math.sin(1.5*x+2*Math.cos(y)),wave=Math.sin(5*ry-3*time+i)/4;

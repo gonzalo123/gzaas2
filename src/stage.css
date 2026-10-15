@@ -72,6 +72,9 @@
 @keyframes tray-in{from{opacity:0;transform:translateY(8px)}}
 
 /* Shared tray atoms */
+.edit-app .panel-background .backdrop-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}
+.edit-app .background-collections{margin:0;flex:none}
+.edit-app .background-collections>button{flex:none;width:32px;height:32px}
 .edit-app .field-label{margin:14px 0 8px;font-size:13px;color:var(--ui-ink)}
 .edit-app .field-label:first-child{margin-top:0}
 .edit-app .field-label>span:not(:only-child){color:var(--ui-dim)}
