@@ -39,7 +39,7 @@ function PosterArtwork({state,paused=false,replay=0,onError,particleDuration,par
  if(state.effect==='neon'&&geometry)textStyle.filter=`drop-shadow(0 0 2px ${state.fg}) drop-shadow(0 0 ${geometry.fontSize*.055}px ${state.fg}99)`;
  return <div ref={ref} className={`kinetic-poster motion-${state.animation}${state.repeat?' is-looping':''}`} style={style} role="img" aria-label={state.text}>
   {geometry&&<svg className="poster-art" viewBox={`0 0 ${geometry.width} ${geometry.height}`} aria-hidden="true">
-   <Backdrop key={`${state.backdrop}:${state.bg}:${state.accent}:${replay}`} state={state} width={geometry.width} height={geometry.height}/>
+   <Backdrop key={`${state.backdrop}:${state.bg}:${state.accent}:${replay}`} state={state} width={geometry.width} height={geometry.height} paused={paused} clock={particleClock}/>
    <defs><pattern id={patternId} width={state.pattern==='dots'?step:step*1.5} height={state.pattern==='dots'?step:step*1.5} patternUnits="userSpaceOnUse">
     {state.pattern==='dots'?<circle cx={step/2} cy={step/2} r={Math.max(1,unit/600)} fill={state.fg}/>:<path d={`M0 0 H${step*1.5}${state.pattern==='grid'?` M0 0 V${step*1.5}`:''}`} fill="none" stroke={state.fg} strokeWidth={Math.max(1,unit/900)}/>}
    </pattern></defs>

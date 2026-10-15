@@ -83,7 +83,7 @@ Máximo 280 caracteres Unicode, 12 líneas y 4096 caracteres de fragmento; la de
 - Editor ajustado a la altura de la pantalla: vista previa siempre visible, controles en pestañas Texto / Estilos / Diseño / Fondos / Movimiento y acciones de compartir y descargar en la barra superior. Las pestañas se recorren con flechas, Home y End. En pantallas excepcionalmente pequeñas o con zoom, el panel de opciones permite desplazamiento sin mover la vista previa.
 - 24 estilos en cuatro colecciones de seis: Esenciales, Noche y neón, Pop y retro y Con carácter. Se recorren sin scroll.
 - Doce fuentes de Google Fonts incluidas localmente, con selector visual que muestra cada tipografía: Bebas Neue, DM Serif Display, DM Sans, Anton, Bungee, Bungee Shade, Monoton, Permanent Marker, Pacifico, Righteous, Space Grotesk y Abril Fatface.
-- Ocho fondos: liso, aurora, nubes, atardecer, rayos, constelación, ajedrez y ondas; colores base y acento editables y movimiento independiente del texto. Texturas opcionales, sombras, contorno, neón y eco 3D.
+- Nueve fondos: liso, seda (Silk), aurora, nubes, atardecer, rayos, constelación, ajedrez y ondas; colores base y acento editables y movimiento independiente del texto. Texturas opcionales, sombras, contorno, neón y eco 3D.
 - Diseño adaptable a móvil y escritorio, con vista de lectura a toda pantalla.
 - Enlace comprimido, portapapeles con alternativa manual y Web Share cuando existe. Imagen o GIF junto al enlace en dispositivos compatibles, y miniatura social común para enlaces pegados.
 - Descarga local en PNG o GIF desde el mismo selector, en 4:3, 1:1 y 3:4. El GIF incluye letras, fondos y todas las escenas del tráiler, con ritmo y bucle configurados; muestra progreso, permite cancelar y ofrece una vista previa antes de descargar. El PNG mantiene el mensaje completo en alta resolución.
@@ -274,6 +274,27 @@ Guarda capturas y un GIF en `/tmp/gzaas-galaxy-check` (configurable con
 Quedan para una siguiente iteración mediciones en móviles de gama baja y
 Safari/Firefox, adaptación de calidad basada en tiempos GPU y morphing continuo.
 
+## Fondo Seda (Silk)
+
+Adaptación del efecto [Silk de React Bits](https://reactbits.dev/backgrounds/silk),
+con los colores Base y Acento del cartel. Se carga bajo demanda, sin dependencias
+nuevas. El editor, el visor y las descargas usan el mismo renderizador por tiempo:
+PNG toma el fotograma estático inicial y GIF conserva el movimiento. El ciclo del
+fondo dura 6 segundos con ritmo normal y se ajusta al ritmo elegido; cuando el
+texto o el tráiler duran más, se recorta a la duración de esa exportación.
+
+La vista previa limita el lado mayor a 1.200 píxeles y la reproducción a 30 fps;
+se detiene al pausar, ocultar la pestaña o quedar fuera de pantalla. Respeta
+«Animar el fondo» y movimiento reducido. Las miniaturas usan Canvas 2D, sin
+contextos WebGL. Si WebGL no está disponible o se pierde, se dibujan los mismos
+pliegues por software a un máximo de 480 píxeles, también al exportar, con la
+vista previa limitada a 15 fps.
+
+`npm run test:silk` comprueba selector y enlaces, pausa y repetición, movimiento
+reducido, móvil, fotogramas deterministas, PNG, GIF decodificado, cancelación,
+combinación con texto/partículas/Galaxy/tráiler y alternativa sin WebGL.
+Admite `CHROME_PATH` y guarda capturas y descargas en `/tmp/gzaas-silk-check`.
+
 ## Créditos
 
 Idea original: **[ojoven](https://github.com/ojoven)**, [Gzaas!](https://github.com/ojoven/gzaas). Gonzalo Ayuso colaboró en el proyecto original con la API PHP. Esta versión conserva la idea y renueva la interfaz y arquitectura. El crédito enlazado al proyecto original y a su autor aparece en la landing, el editor y el visor.
@@ -293,6 +314,12 @@ Abre `gzaas-preview.html` en un navegador moderno. Incluye el código, CSS y fue
 
 Build de producción y comprobación TypeScript correctos. Treinta y nueve tests: nueve de partículas, siete de su integración y mezcla en tráiler, tres de archivos compartidos, enlaces públicos y compatibilidad; diez del formato de URL, incluyendo todas las combinaciones de fuentes, fondos y efectos, animación, ritmo y repetición y compatibilidad con enlaces antiguos; cinco de segmentación, grafemas, secuencias, tiempos, cierre y bucles del tráiler; cinco de proporciones, fotogramas, tiempos GIF, secuencias completas y exportación estática. Revisión visual e interacción en Chrome en escritorio y móvil: colecciones, selector de fuentes, animación por letras y de fondos, pausa, repetición, visor, enlaces compartidos, créditos y movimiento reducido. Exportación GIF comprobada sin conexión desde la demo HTML: fuentes, efectos, tráiler completo, bucle, cancelación y PNG; archivos GIF decodificados para verificar fotogramas, tiempos y proporciones. El diálogo cabe sin scroll en las nueve resoluciones de escritorio y móvil revisadas. Compartir PNG y GIF con enlace comprobado con un menú nativo simulado, incluyendo activación del usuario, cancelación y descarga alternativa; no se ha enviado a WhatsApp. Metadatos sociales estáticos e imagen PNG de 1200 × 630 comprobados en el build; la tarjeta en apps de terceros se comprobará tras publicar. La integración WebMCP no se ha validado en un navegador que la implemente.
 
+El fondo Seda adapta la ecuación de pliegues de **React Bits, David Haz**, bajo
+MIT + Commons Clause. Su licencia se conserva en
+[`public/licenses/react-bits.txt`](public/licenses/react-bits.txt), también incluida
+en la copia de demostración HTML. La adaptación incorpora dos colores, un ciclo
+periódico, renderizado por fotogramas y una alternativa Canvas 2D.
+
 ## Licencia
 
-Código del proyecto bajo [licencia MIT](LICENSE). Las licencias de fuentes y dependencias están en [`public/licenses/`](public/licenses/).
+Código propio del proyecto bajo [licencia MIT](LICENSE). El código adaptado de React Bits conserva MIT + Commons Clause. Las licencias de terceros están en [`public/licenses/`](public/licenses/).

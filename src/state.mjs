@@ -16,7 +16,7 @@ export const FONTS = [
  {id:'abril',name:'Abril Fatface',family:'Abril Fatface',mood:'Dramática',weight:400},
 ];
 export const BACKDROPS = [
- {id:'solid',name:'Liso'}, {id:'aurora',name:'Aurora'}, {id:'mesh',name:'Nubes'}, {id:'sunset',name:'Atardecer'},
+ {id:'solid',name:'Liso'}, {id:'silk',name:'Seda (Silk)'}, {id:'aurora',name:'Aurora'}, {id:'mesh',name:'Nubes'}, {id:'sunset',name:'Atardecer'},
  {id:'rays',name:'Rayos'}, {id:'stars',name:'Constelación'}, {id:'checker',name:'Ajedrez'}, {id:'waves',name:'Ondas'},
 ];
 export const COLLECTIONS = ['Esenciales','Noche y neón','Pop y retro','Con carácter'];

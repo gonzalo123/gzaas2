@@ -59,6 +59,10 @@ export async function paint(canvas:HTMLCanvasElement,s:Poster,width:number,heigh
  canvas.width=width;canvas.height=height;
  const ctx=canvas.getContext('2d');if(!ctx)return;
  paintBackdrop(ctx,s,width,height);
+ if(s.backdrop==='silk'){
+  const {createSilkRenderer}=await import('./silk-renderer'),renderer=createSilkRenderer(s,width,height);
+  try{renderer.draw(0);ctx.drawImage(renderer.canvas,0,0);}finally{renderer.dispose();}
+ }
  paintTexture(ctx,s,width,height);
  if(isGalaxy(s.animation)){const {createGalaxyRenderer}=await import('./galaxy-renderer');const renderer=createGalaxyRenderer(s,width,height,{exporting:true});try{renderer.draw(12000,true);ctx.drawImage(renderer.canvas,0,0,width,height);}finally{renderer.dispose();}return;}
  if(isParticle(s.animation)){drawParticles(ctx,createPosterParticles(s,width,height),s,width,height,0,true);return;}

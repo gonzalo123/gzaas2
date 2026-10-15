@@ -1,9 +1,11 @@
 import {useId,type CSSProperties} from 'react';
 import {backdropScene} from './background';
 import type {Poster} from './render';
+import {SilkBackdrop} from './SilkBackdrop';
 
-export function Backdrop({state,width,height}:{state:Poster;width:number;height:number}){
+export function Backdrop({state,width,height,paused,clock,thumbnail=false}:{state:Poster;width:number;height:number;paused?:boolean;clock?:()=>number;thumbnail?:boolean}){
  const prefix=useId(),scene=backdropScene(state,width,height);
+ if(state.backdrop==='silk')return <SilkBackdrop state={state} width={width} height={height} paused={paused} clock={clock} thumbnail={thumbnail}/>;
  return <g className={`backdrop-art${state.backdropMotion?' backdrop-animated':''}`}>
   <defs>{scene.gradients.map(g=>g.kind==='radial'?<radialGradient key={g.id} id={prefix+g.id}>{g.stops.map((s,i)=><stop key={i} offset={s.at} stopColor={s.color} stopOpacity={s.alpha}/>)}</radialGradient>:<linearGradient key={g.id} id={prefix+g.id} x2="100%" y2="100%">{g.stops.map((s,i)=><stop key={i} offset={s.at} stopColor={s.color} stopOpacity={s.alpha}/>)}</linearGradient>)}</defs>
   {scene.shapes.map((s,i)=>{

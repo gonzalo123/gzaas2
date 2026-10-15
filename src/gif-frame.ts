@@ -10,7 +10,9 @@ export async function gifFrameRenderer(canvas:HTMLCanvasElement,state:Poster,wid
  const ctx=canvas.getContext('2d',{willReadFrequently:true});if(!ctx)throw Error('El navegador no puede crear la imagen.');
  const galaxy=isGalaxy(state.animation)?(await import('./galaxy-renderer')).createGalaxyRenderer(state,width,height,{exporting:true}):null;
  const geometry=layoutText(ctx,state,width,height),unit=Math.min(width,height),sampler=motionSampler();
+ let silk:ReturnType<typeof import('./silk-renderer')['createSilkRenderer']>|undefined;
  try{
+ if(state.backdrop==='silk')silk=(await import('./silk-renderer')).createSilkRenderer(state,width,height);
  const tempo=state.pace==='slow'?1.45:state.pace==='fast'?.7:1;
  const byLetter=['letters','wave','bounce','orbit'].includes(state.animation),byPart=byLetter||state.animation==='cascade';
  const count=geometry.lines.reduce((n,l)=>n+l.letters.length,0),timing=textTiming(state.animation,state.repeat,tempo);
@@ -26,7 +28,9 @@ export async function gifFrameRenderer(canvas:HTMLCanvasElement,state:Poster,wid
  return {
   draw(time:number){
    ctx.clearRect(0,0,width,height);
-   paintBackdrop(ctx,state,width,height,background,i=>shapes[i](time));paintTexture(ctx,state,width,height);
+   paintBackdrop(ctx,state,width,height,background,i=>shapes[i](time));
+   if(silk){silk.draw(time);ctx.drawImage(silk.canvas,0,0);}
+   paintTexture(ctx,state,width,height);
    if(galaxy){galaxy.draw(galaxyTime(time,state.pace,particleDuration,state.repeat));ctx.drawImage(galaxy.canvas,0,0,width,height);}
    if(field)drawParticles(ctx,field,state,width,height,particlePlaybackTime(time,state.pace,particleDuration));
    for(const part of parts){
@@ -37,7 +41,7 @@ export async function gifFrameRenderer(canvas:HTMLCanvasElement,state:Poster,wid
     paintTextUnit(ctx,state,geometry.fontSize,part.text,part.x,part.y,byPart?'left':state.align as CanvasTextAlign);ctx.restore();
    }
   },
-  dispose(){sampler.dispose();galaxy?.dispose();}
+  dispose(){sampler.dispose();galaxy?.dispose();silk?.dispose();}
  };
- }catch(error){sampler.dispose();galaxy?.dispose();throw error;}
+ }catch(error){sampler.dispose();galaxy?.dispose();silk?.dispose();throw error;}
 }

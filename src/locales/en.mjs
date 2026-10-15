@@ -128,6 +128,7 @@ export default {
  'Geométrica':'Geometric',
  'Dramática':'Dramatic',
  'Liso':'Solid',
+ 'Seda (Silk)':'Silk',
  'Aurora':'Aurora',
  'Nubes':'Clouds',
  'Atardecer':'Sunset',
