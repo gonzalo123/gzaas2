@@ -2,7 +2,7 @@ import {useI18n} from './useI18n';
 import {isGalaxy} from './galaxy.mjs';
 import {isParticle} from './particles.mjs';
 import React,{useEffect,useState,type KeyboardEvent} from 'react';
-import {ANIMATIONS,BACKDROPS,COLLECTIONS,MAX_TEXT,PRESETS} from './state.mjs';
+import {ANIMATIONS,BACKDROPS,BACKDROP_COLLECTIONS,backdropCollection,COLLECTIONS,MAX_TEXT,PRESETS} from './state.mjs';
 import {families,fontWeight,type Poster} from './render';
 import {FontPicker} from './FontPicker';
 import {Backdrop} from './Backdrop';
@@ -27,6 +27,8 @@ export function EditorPanel({state,patch,tab,open,onTab}:{state:Poster;patch:(p:
  const trailerStyle=state.trailerMix?'mix':state.trailerGalaxy?'galaxy':state.trailerParticles?'particles':'classic';
  const trailer=state.animation==='trailer'?buildTrailer(state):null;
  const [collection,setCollection]=useState(0),[motionGroup,setMotionGroup]=useState(motionType(state.animation));
+ const [backgroundCollection,setBackgroundCollection]=useState(()=>backdropCollection(state.backdrop));
+ useEffect(()=>{setBackgroundCollection(backdropCollection(state.backdrop));},[state.backdrop]);
  useEffect(()=>{setMotionGroup(motionType(state.animation));},[state.animation]);
  useEffect(()=>{const index=PRESETS.findIndex(p=>['font','fg','bg','backdrop','effect','animation'].every(k=>state[k as keyof Poster]===p[k as keyof typeof p]));if(index>=0)setCollection(Math.floor(index/6));},[state.font,state.fg,state.bg,state.backdrop,state.effect,state.animation]);
  function navigate(e:KeyboardEvent<HTMLButtonElement>,index:number){
@@ -65,7 +67,8 @@ export function EditorPanel({state,patch,tab,open,onTab}:{state:Poster;patch:(p:
     <div className="tray-col"><div className="field-label"><span>{t("Textura del fondo")}</span></div><div className="segmented" role="group" aria-label={t("Textura del fondo")}>{[['none',t("Lisa")],['dots',t("Puntos")],['grid',t("Cuadrícula")],['lines',t("Líneas")]].map(([id,label])=><button key={id} aria-pressed={state.pattern===id} className={state.pattern===id?'selected':''} onClick={()=>patch({pattern:id})}>{label}</button>)}</div></div>
    </>}
    {tab==='background'&&<>
-    <div className="backdrop-options" role="group" aria-label={t("Fondo del mensaje")}>{BACKDROPS.map(b=><button key={b.id} className={`backdrop-choice${state.backdrop===b.id?' selected':''}`} aria-pressed={state.backdrop===b.id} onClick={()=>patch({backdrop:b.id})}><svg viewBox="0 0 120 60" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><Backdrop state={{...state,backdrop:b.id,backdropMotion:false}} thumbnail width={120} height={60}/></svg><span>{t(b.name)}</span></button>)}</div>
+    <div className="collection-controls background-collections"><button aria-label={t("Colección de fondos anterior")} onClick={()=>setBackgroundCollection(c=>(c+BACKDROP_COLLECTIONS.length-1)%BACKDROP_COLLECTIONS.length)}>‹</button><div aria-live="polite" aria-atomic="true"><strong>{t(BACKDROP_COLLECTIONS[backgroundCollection].name)}</strong><span>{backgroundCollection+1} / {BACKDROP_COLLECTIONS.length}</span></div><button aria-label={t("Colección de fondos siguiente")} onClick={()=>setBackgroundCollection(c=>(c+1)%BACKDROP_COLLECTIONS.length)}>›</button></div>
+    <div className="backdrop-options" role="group" aria-label={t("Fondo del mensaje")}>{BACKDROP_COLLECTIONS[backgroundCollection].ids.map(id=>BACKDROPS.find(b=>b.id===id)!).map(b=><button key={b.id} className={`backdrop-choice${state.backdrop===b.id?' selected':''}`} aria-pressed={state.backdrop===b.id} onClick={()=>patch({backdrop:b.id})}><svg viewBox="0 0 120 60" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><Backdrop state={{...state,backdrop:b.id,backdropMotion:false}} thumbnail width={120} height={60}/></svg><span>{t(b.name)}</span></button>)}</div>
     <div className="tray-row"><div className="colors">{[['bg',t("Base")],['accent',t("Acento")]].map(([id,label])=><label key={id}><span>{label}</span><div className="color-input"><input type="color" aria-label={t(id==='bg'?'Color base del fondo':'Color acento del fondo')} value={state[id as 'bg'|'accent']} onChange={e=>patch({[id]:e.target.value})}/><span>{state[id as 'bg'|'accent'].toUpperCase()}</span></div></label>)}</div>
     <label className="loop-control backdrop-toggle"><input type="checkbox" checked={state.backdropMotion} disabled={state.backdrop==='solid'} onChange={e=>patch({backdropMotion:e.target.checked})}/><span className="toggle" aria-hidden="true"/><span>{t("Animar el fondo")}</span></label></div>
    </>}

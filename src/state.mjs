@@ -18,7 +18,15 @@ export const FONTS = [
 export const BACKDROPS = [
  {id:'solid',name:'Liso'}, {id:'silk',name:'Seda (Silk)'}, {id:'aurora',name:'Aurora'}, {id:'mesh',name:'Nubes'}, {id:'sunset',name:'Atardecer'},
  {id:'rays',name:'Rayos'}, {id:'stars',name:'Constelación'}, {id:'checker',name:'Ajedrez'}, {id:'waves',name:'Ondas'},
+ {id:'iridescence',name:'Iridescencia'}, {id:'threads',name:'Hilos'}, {id:'color-bends',name:'Color Bends'},
 ];
+export const BACKDROP_COLLECTIONS = [
+ {name:'Ambientes',ids:['solid','aurora','mesh','sunset']},
+ {name:'Gráficos',ids:['rays','stars','checker','waves']},
+ {name:'React Bits',ids:['silk','iridescence','threads','color-bends']},
+];
+export const isReactBitsBackdrop = id => BACKDROP_COLLECTIONS[2].ids.includes(id);
+export const backdropCollection = id => Math.max(0,BACKDROP_COLLECTIONS.findIndex(collection=>collection.ids.includes(id)));
 export const COLLECTIONS = ['Esenciales','Noche y neón','Pop y retro','Con carácter'];
 export const ANIMATIONS = [
  {id:'particle-galaxy',name:'Particle Galaxy 3D',description:'Una galaxia se convierte en letras con volumen. Arrastra para explorar; toca para dispersar.',mark:'✺',group:'particles'},

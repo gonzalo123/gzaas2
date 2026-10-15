@@ -1,3 +1,4 @@
+import {isReactBitsBackdrop} from './state.mjs';
 import {isGalaxy} from './galaxy.mjs';
 import {buildTrailer} from './trailer.mjs';
 import {FONTS} from './state.mjs';
@@ -59,8 +60,8 @@ export async function paint(canvas:HTMLCanvasElement,s:Poster,width:number,heigh
  canvas.width=width;canvas.height=height;
  const ctx=canvas.getContext('2d');if(!ctx)return;
  paintBackdrop(ctx,s,width,height);
- if(s.backdrop==='silk'){
-  const {createSilkRenderer}=await import('./silk-renderer'),renderer=createSilkRenderer(s,width,height);
+ if(isReactBitsBackdrop(s.backdrop)){
+  const {createReactBitsRenderer}=await import('./react-bits-renderer'),renderer=createReactBitsRenderer(s,width,height);
   try{renderer.draw(0);ctx.drawImage(renderer.canvas,0,0);}finally{renderer.dispose();}
  }
  paintTexture(ctx,s,width,height);

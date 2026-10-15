@@ -5,7 +5,7 @@
  */
 import type {Poster} from './render';
 
-type Palette = Pick<Poster,'bg'|'accent'|'pace'|'backdropMotion'>;
+export type Palette = Pick<Poster,'bg'|'accent'|'pace'|'backdropMotion'>;
 const vertex = `attribute vec2 position;
 void main(){gl_Position=vec4(position,0.0,1.0);}`;
 const fragment = `precision highp float;
@@ -27,7 +27,7 @@ void main(){
 }`;
 const rgb=(hex:string)=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);
 
-function gpuPainter(width:number,height:number,base:number[],accent:number[]){
+function gpuPainter(width:number,height:number,base:number[],accent:number[],fragmentSource:string){
  const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
  const gl=canvas.getContext('webgl',{alpha:false,antialias:false,depth:false,stencil:false,powerPreference:'low-power'});
  if(!gl)return null;
@@ -39,7 +39,7 @@ function gpuPainter(width:number,height:number,base:number[],accent:number[]){
   gl.getExtension('WEBGL_lose_context')?.loseContext();
  };
  try{
-  for(const [kind,source] of [[gl.VERTEX_SHADER,vertex],[gl.FRAGMENT_SHADER,fragment]] as const){
+  for(const [kind,source] of [[gl.VERTEX_SHADER,vertex],[gl.FRAGMENT_SHADER,fragmentSource]] as const){
    const shader=gl.createShader(kind);if(!shader)throw Error('Silk shader');
    shaders.push(shader);gl.shaderSource(shader,source);gl.compileShader(shader);
    if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw Error('Silk shader');
@@ -66,20 +66,28 @@ function gpuPainter(width:number,height:number,base:number[],accent:number[]){
  }catch{dispose();return null;}
 }
 
-// Same fold/color equations as the shader. Thumbnails never allocate a GPU
-// context; unavailable or lost WebGL also keeps both viewing and exports usable.
-function softwarePainter(width:number,height:number,base:number[],accent:number[]){
- const canvas=document.createElement('canvas'),scale=Math.min(1,480/Math.max(width,height));
+export type ShaderPattern={
+ fragment:string;
+ sample:(u:number,v:number,phase:number,aspect:number,base:number[],accent:number[])=>number[];
+ softwareSize:number;
+};
+const silkPattern:ShaderPattern={fragment,softwareSize:480,sample(u,v,phase,_aspect,base,accent){
+ const time=3*Math.sin(phase);u+=.035*(Math.cos(phase)-1);v+=.03*Math.sin(8*u-time);
+ const n=.5+.5*Math.sin(5*(u+v+Math.cos(3*u+5*v)+.02*time)+Math.sin(20*(u+v-.1*time)));
+ const mix=.08+.72*n**1.7,sheen=.12*n**8;
+ return base.map((value,c)=>value*.65*(1-mix)+accent[c]*(mix+sheen));
+}};
+
+// CPU thumbnails and fallback evaluate the same equations as the GPU shaders.
+function softwarePainter(width:number,height:number,base:number[],accent:number[],pattern:ShaderPattern){
+ const canvas=document.createElement('canvas'),scale=Math.min(1,pattern.softwareSize/Math.max(width,height));
  const w=canvas.width=Math.max(1,Math.round(width*scale)),h=canvas.height=Math.max(1,Math.round(height*scale));
  const ctx=canvas.getContext('2d');if(!ctx)throw Error('El navegador no puede crear la imagen.');
  const image=ctx.createImageData(w,h);
  return {canvas,draw(phase:number){
-  const time=3*Math.sin(phase),shift=.035*(Math.cos(phase)-1);
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-   const u=(x+.5)/w+shift,v=1-(y+.5)/h+.03*Math.sin(8*u-time);
-   const n=.5+.5*Math.sin(5*(u+v+Math.cos(3*u+5*v)+.02*time)+Math.sin(20*(u+v-.1*time)));
-   const mix=.08+.72*n**1.7,sheen=.12*n**8,index=(y*w+x)*4;
-   for(let c=0;c<3;c++)image.data[index+c]=255*(base[c]*.65*(1-mix)+accent[c]*(mix+sheen));
+   const color=pattern.sample((x+.5)/w,1-(y+.5)/h,phase,width/height,base,accent),index=(y*w+x)*4;
+   for(let c=0;c<3;c++)image.data[index+c]=255*color[c];
    image.data[index+3]=255;
   }
   ctx.putImageData(image,0,0);
@@ -87,11 +95,11 @@ function softwarePainter(width:number,height:number,base:number[],accent:number[
 }
 
 /** No wall clock or RAF here: preview, PNG and GIF all draw explicit times. */
-export function createSilkRenderer(state:Palette,width:number,height:number,software=false){
+export function createShaderRenderer(state:Palette,width:number,height:number,software:boolean,pattern:ShaderPattern){
  const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(width));canvas.height=Math.max(1,Math.round(height));
  const ctx=canvas.getContext('2d');if(!ctx)throw Error('El navegador no puede crear la imagen.');
  const base=rgb(state.bg),accent=rgb(state.accent);
- let gpu=software?null:gpuPainter(canvas.width,canvas.height,base,accent);
+ let gpu=software?null:gpuPainter(canvas.width,canvas.height,base,accent,pattern.fragment);
  let cpu:ReturnType<typeof softwarePainter>|undefined,lastTime:number|undefined,disposed=false;
  const tempo=state.pace==='slow'?1.45:state.pace==='fast'?.7:1;
  return {canvas,
@@ -101,10 +109,14 @@ export function createSilkRenderer(state:Palette,width:number,height:number,soft
    if(time===lastTime)return;
    const phase=time/(6000*tempo)*Math.PI*2;
    if(gpu&&!gpu.draw(phase)){gpu.dispose();gpu=null;}
-   if(!gpu){cpu??=softwarePainter(canvas.width,canvas.height,base,accent);cpu.draw(phase);}
-   canvas.dataset.silkBackend=gpu?'webgl':'software';
+   if(!gpu){cpu??=softwarePainter(canvas.width,canvas.height,base,accent,pattern);cpu.draw(phase);}
+   canvas.dataset.backend=gpu?'webgl':'software';
    ctx.drawImage((gpu??cpu)!.canvas,0,0,canvas.width,canvas.height);lastTime=time;
   },
   dispose(){if(disposed)return;disposed=true;gpu?.dispose();gpu=null;cpu=undefined;}
  };
+}
+
+export function createSilkRenderer(state:Palette,width:number,height:number,software=false){
+ return createShaderRenderer(state,width,height,software,silkPattern);
 }

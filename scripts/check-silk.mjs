@@ -23,14 +23,15 @@ try{
  await page.goto(url({...state,backdrop:'solid'},true));await page.waitForTimeout(300);
  assert.ok(!requests.some(r=>r.includes('silk-renderer')),'other backgrounds do not load Silk');
  await page.getByRole('tab',{name:'Fondos',exact:true}).click();
+ await page.getByRole('button',{name:'Colección de fondos anterior',exact:true}).click();
  const choice=page.getByRole('button',{name:'Seda (Silk)',exact:true});
  await choice.click();
- const canvas=page.locator('.poster-art .silk-canvas');
+ const canvas=page.locator('.poster-art .backdrop-canvas');
  await canvas.waitFor();await page.waitForTimeout(400);
  assert.equal(await choice.getAttribute('aria-pressed'),'true');
  assert.equal(decodeState(new URL(page.url()).hash.replace('#edit:','#')).backdrop,'silk');
- assert.equal(await canvas.getAttribute('data-silk-backend'),'webgl');
- assert.equal(await choice.locator('canvas').getAttribute('data-silk-backend'),'software','thumbnail allocates no WebGL context');
+ assert.equal(await canvas.getAttribute('data-backend'),'webgl');
+ assert.equal(await choice.locator('canvas').getAttribute('data-backend'),'software','thumbnail allocates no WebGL context');
  const pixels=()=>canvas.evaluate(c=>c.toDataURL());
  const moving=await pixels();await page.waitForTimeout(250);assert.notEqual(await pixels(),moving,'real playback moves');
  await page.getByRole('button',{name:'Pausar animación',exact:true}).click();
@@ -47,7 +48,7 @@ try{
  await page.emulateMedia({reducedMotion:'no-preference'});await page.waitForTimeout(250);assert.notEqual(await pixels(),still);
  // Simulate a driver/context loss: the same visible canvas continues in software.
  await page.evaluate(()=>window.silkContexts.at(-1).getExtension('WEBGL_lose_context').loseContext());
- await page.waitForFunction(()=>document.querySelector('.poster-art .silk-canvas')?.dataset.silkBackend==='software');
+ await page.waitForFunction(()=>document.querySelector('.poster-art .backdrop-canvas')?.dataset.backend==='software');
  console.log('PASS: lazy load, selector, link, thumbnail, play/pause/replay, static/reduced motion, context loss');
 
  await page.goto(url());await canvas.waitFor();await page.waitForTimeout(150);
@@ -106,11 +107,12 @@ try{
  const beforeColor=await pixels();
  await page.getByLabel('Color acento del fondo',{exact:true}).fill('#d58b77');await page.waitForTimeout(150);
  assert.notEqual(await pixels(),beforeColor,'accent control redraws Silk');
+ await page.waitForURL(u=>decodeState(u.hash.replace('#edit:','#')).accent==='#d58b77');
  assert.equal(decodeState(new URL(page.url()).hash.replace('#edit:','#')).accent,'#d58b77');
  // Fresh browser without WebGL verifies both the displayed and exported fallback.
  const fallback=await browser.newPage({locale:'es-ES'});fallback.on('pageerror',e=>errors.push(e.message));
  await fallback.addInitScript(()=>{const get=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(kind,...args){return kind==='webgl'||kind==='webgl2'?null:get.call(this,kind,...args);};});
- await fallback.goto(url({...state,backdropMotion:false}));await fallback.waitForSelector('.silk-canvas[data-silk-backend="software"]');
+ await fallback.goto(url({...state,backdropMotion:false}));await fallback.waitForSelector('.backdrop-canvas[data-backend="software"]');
  const softwareExport=await fallback.evaluate(async state=>{
   const {paint,waitFonts}=await import('/src/render.ts'),{exportGif}=await import('/src/export-gif.ts');await waitFonts(state);
   const canvas=document.createElement('canvas');await paint(canvas,state,320,240);
@@ -122,8 +124,8 @@ try{
  if(process.env.TEST_PREVIEW_FILE){
   const offline=await browser.newPage({locale:'es-ES'});await offline.route(/^https?:/,route=>route.abort());
   await offline.goto('file://'+process.env.TEST_PREVIEW_FILE+encodeState({...state,backdropMotion:false}));
-  await offline.waitForSelector('.silk-canvas[data-silk-backend]');
-  const data=await offline.locator('.silk-canvas').evaluate(c=>c.toDataURL());assert.ok(data.length>2000);
+  await offline.waitForSelector('.backdrop-canvas[data-backend]');
+  const data=await offline.locator('.backdrop-canvas').evaluate(c=>c.toDataURL());assert.ok(data.length>2000);
   await offline.close();console.log('PASS: standalone HTML works offline');
  }
 }finally{await browser?.close();server?.kill();}
