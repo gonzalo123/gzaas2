@@ -19,7 +19,7 @@
 .edit-app:has(.panel-design){--tray-h:min(132px,24dvh)}
 .edit-app:has(.panel-background){--tray-h:min(192px,32dvh)}
 .edit-app:has(.panel-motion){--tray-h:min(224px,34dvh)}
-.edit-app dialog{color-scheme:light}
+.edit-app dialog{color-scheme:light;--ui-ink:#31382e;--ui-dim:#727a6b;--ui-surface:transparent;--ui-surface-2:#e8ebdf;--ui-line:#cdd0c8}
 .edit-app :is(button,a,input,textarea,select):focus-visible{outline-color:var(--ui-accent)}
 
 /* Top bar */
