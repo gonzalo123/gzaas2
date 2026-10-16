@@ -42,8 +42,8 @@ try{
  const still=await pixels();await page.waitForTimeout(250);assert.equal(await pixels(),still,'static toggle stops animation');
  await page.screenshot({path:output+'/editor-desktop.png'});
  await page.getByLabel('Animar el fondo',{exact:true}).check();
- await page.emulateMedia({reducedMotion:'reduce'});await page.waitForTimeout(150);
- assert.equal(await pixels(),still,'reduced motion uses canonical static frame');
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.waitForFunction(expected=>document.querySelector('.poster-art .backdrop-canvas')?.toDataURL()===expected,still);
  await page.waitForTimeout(250);assert.equal(await pixels(),still);
  await page.emulateMedia({reducedMotion:'no-preference'});await page.waitForTimeout(250);assert.notEqual(await pixels(),still);
  // Simulate a driver/context loss: the same visible canvas continues in software.
