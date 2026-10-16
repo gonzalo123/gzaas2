@@ -349,8 +349,7 @@ Canvas 2D a la resolución de salida, sin necesitar WebGL. Los ocho fondos de
 React Bits II también usan Canvas 2D: halo y luz orbital, campos de ruido para
 relámpagos y líneas, trama Bayer 8×8, cuadrículas deformables, copos pixelados
 con distribución fija y tres bandas de líneas flotantes. Sus movimientos
-periódicos sustituyen la interacción con el cursor del original y se reproducen
-igual al exportar; no necesitan GPU ni recursos externos.
+periódicos se reproducen igual al exportar; no necesitan GPU ni recursos externos.
 
 React Bits III incorpora tres shaders con alternativa por software: Dark Veil
 conserva los pesos de su red neuronal y usa un máximo de 240 píxeles por software;
@@ -361,6 +360,11 @@ una pirámide de caras proyectadas, un pilar luminoso, una habitación de
 cuadrículas con barrido, una nube de píxeles y un campo de estrellas con
 profundidad. Son adaptaciones periódicas de los efectos públicos de React Bits
 para conservar el aspecto en vista previa, PNG y GIF sin dependencias nuevas.
+
+En el editor y el visor, los fondos React Bits siguen el ratón con un
+desplazamiento suave y un halo de luz. Esta respuesta se detiene al pausar,
+desactivar «Animar el fondo» o solicitar movimiento reducido. Los PNG y GIF
+siguen usando los fotogramas reproducibles sin interacción.
 
 «Fondos» muestra ocho opciones por colección: dos columnas en el panel lateral
 y cuatro columnas en la bandeja inferior. Las flechas recorren Ambientes y

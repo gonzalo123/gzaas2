@@ -43,7 +43,18 @@ try{
   assert.equal(await cards.count(),8);assert.match(await group.innerText(),/React Bits/);
   const snapshot=()=>canvas.evaluate(c=>c.toDataURL());
   const first=await snapshot();await page.waitForTimeout(250);assert.ok(await snapshot()!==first,`${id} moves`);
+  if(id==='iridescence'){
+   const poster=await page.locator('.poster-art').boundingBox();
+   await page.mouse.move(poster.x+poster.width*.2,poster.y+poster.height*.5);
+   await page.waitForTimeout(250);const left=await canvas.evaluate(c=>c.style.transform);
+   await page.mouse.move(poster.x+poster.width*.8,poster.y+poster.height*.5);
+   await page.waitForTimeout(250);const right=await canvas.evaluate(c=>c.style.transform);
+   assert.notEqual(right,left,'live background follows the mouse');
+   assert.ok(Number(await page.locator('.backdrop-pointer-glow').evaluate(e=>e.style.opacity))>0,'pointer glow is visible');
+   await page.screenshot({path:`${output}/iridescence-pointer.png`});
+  }
   await page.getByRole('button',{name:'Pausar animación',exact:true}).click();await page.waitForTimeout(50);const paused=await snapshot();await page.waitForTimeout(200);assert.ok(await snapshot()===paused,`${id}: paused pixels stay frozen`);
+  if(id==='iridescence')assert.equal(await page.locator('.backdrop-pointer-glow').evaluate(e=>e.style.opacity),'0','pause disables pointer response');
   await page.screenshot({path:`${output}/${id}-desktop.png`});
   await page.getByLabel('Animar el fondo',{exact:true}).uncheck();await page.waitForTimeout(100);
   const still=await sample(),staticBackend=await canvas.getAttribute('data-backend');
@@ -56,6 +67,7 @@ try{
   }
   assert.ok(difference<2,`${id}: reduced motion mean pixel difference ${difference}, backend ${staticBackend} → ${await canvas.getAttribute('data-backend')}`);
   await page.waitForTimeout(150);assert.ok(meanDifference(await sample(),still)<2,`${id}: reduced motion holds the static frame`);
+  if(id==='iridescence')assert.equal(await page.locator('.backdrop-pointer-glow').evaluate(e=>e.style.opacity),'0','reduced motion disables pointer response');
   await page.emulateMedia({reducedMotion:'no-preference'});
   const result=await page.evaluate(async state=>{
    const {createReactBitsRenderer}=await import('/src/react-bits-renderer.ts');
@@ -89,6 +101,11 @@ try{
  const toggle=await page.getByLabel('Animar el fondo',{exact:true}).locator('..').boundingBox(),panel=await page.locator('#editor-panel').boundingBox();
  assert.ok(toggle.y+toggle.height<=panel.y+panel.height,'mobile animation control fits without scrolling');
  await page.goto(url('threads',false));await canvas.waitFor();assert.equal(await page.locator('.viewer').count(),1);
+ const viewerPoster=await page.locator('.poster-art').boundingBox();
+ await page.mouse.move(viewerPoster.x+viewerPoster.width*.2,viewerPoster.y+viewerPoster.height*.5);
+ await page.waitForTimeout(250);const viewerLeft=await canvas.evaluate(c=>c.style.transform);
+ await page.mouse.move(viewerPoster.x+viewerPoster.width*.8,viewerPoster.y+viewerPoster.height*.5);
+ await page.waitForTimeout(250);assert.notEqual(await canvas.evaluate(c=>c.style.transform),viewerLeft,'shared viewer background follows the mouse');
  const fallback=await browser.newPage({locale:'es-ES'});fallback.on('pageerror',e=>errors.push(e.message));
  await fallback.addInitScript(()=>{const get=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(kind,...args){return kind==='webgl'||kind==='webgl2'?null:get.call(this,kind,...args);};});
  for(const backdrop of REACT_BITS_BACKDROPS.filter(id=>id!=='silk')){

@@ -3,7 +3,8 @@
  * Sources: src/ts-default/Backgrounds/{Iridescence,Threads,ColorBends} in
  * https://github.com/DavidHDev/react-bits
  * Gzaas adaptations: two-color palettes, periodic explicit time, CPU rendering,
- * no pointer input, so sharing and export reproduce the selected design.
+ * no pointer input in the renderer, so sharing and export reproduce the design.
+ * AnimatedBackdrop adds a pointer response only to the live view.
  */
 import {createShaderRenderer,createSilkRenderer,type ShaderPattern,type Palette} from './silk-renderer';
 import {extraPatterns} from './react-bits-patterns';
