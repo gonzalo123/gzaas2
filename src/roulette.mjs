@@ -1,17 +1,20 @@
 // Style roulette: fast flashes that decelerate and land on a chosen preset.
-import {BACKDROPS,PRESETS} from './state.mjs';
+import {ANIMATIONS,BACKDROPS,PRESETS} from './state.mjs';
 export const ROULETTE_STEPS = 7;
+// The welcome logo uses brief entrances; created posters use the full catalog.
+export const LANDING_ANIMATIONS = ['letters','bounce','orbit','rb-fold','rb-echo'];
 
-/** Pick a palette and a background independently across the complete catalogs.
- * @param {{bg?:string,backdrop?:string}|undefined} current
+/** Pick palette, background and motion independently across the full catalogs.
+ * @param {{bg?:string,backdrop?:string,animation?:string}|undefined} current
  * @param {()=>number} random
  */
 export function randomStyle(current,random=Math.random){
   const presets=PRESETS.map((preset,index)=>({preset,index})).filter(({preset})=>preset.bg!==current?.bg);
   const backgrounds=BACKDROPS.filter(background=>background.id!==current?.backdrop);
+  const animations=ANIMATIONS.filter(animation=>animation.id!==current?.animation);
   const {preset,index}=presets[Math.floor(random()*presets.length)];
   const {name,sample,...style}=preset;
-  return {index,style:{...style,backdrop:backgrounds[Math.floor(random()*backgrounds.length)].id,backdropMotion:true}};
+  return {index,style:{...style,backdrop:backgrounds[Math.floor(random()*backgrounds.length)].id,animation:animations[Math.floor(random()*animations.length)].id,backdropMotion:true}};
 }
 
 // Delays ease out from ~70 ms to ~380 ms (≈1.4 s in total).

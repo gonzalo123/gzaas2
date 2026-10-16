@@ -80,18 +80,18 @@ try{
  const recipient=await browser.newPage({locale:'en-US',reducedMotion:'reduce'});
  const shared={...DEFAULT,text:message,animation:'none'};await recipient.goto(base+'/'+encodeState(shared));
  assert.deepEqual(decodeState(new URL(recipient.url()).hash),shared);assert.equal(await recipient.locator('html').getAttribute('lang'),'en');await recipient.close();
- // Switching locale mid-typewriter replaces its clock and keeps the draft.
+ // Switching locale mid-decode replaces its clock and keeps the draft.
  const animated=await browser.newPage({locale:'en-US',viewport:{width:390,height:844}});
  animated.on('pageerror',e=>errors.push(e.message));await animated.goto(base);
  await animated.getByRole('textbox',{name:'Your message',exact:true}).fill('My draft');
  await animated.getByRole('combobox',{name:'Language',exact:true}).selectOption('es');
  await animated.waitForTimeout(120);
  await animated.getByRole('combobox',{name:'Idioma',exact:true}).selectOption('en');
- await animated.waitForTimeout(3600);
+ await animated.waitForTimeout(2300);
  assert.equal(await animated.locator('.landing-tagline .sr-only').textContent(),'Your words. Full screen.');
- assert.ok(await animated.locator('.landing-type-char').evaluateAll(chars=>chars.every(c=>getComputedStyle(c).visibility==='visible')));
- assert.equal(await animated.locator('.landing-type-caret').count(),1);
- assert.equal(await animated.locator('.landing-type-caret').getAttribute('data-visible'),'false');
+ assert.equal(await animated.locator('.landing-tagline').getAttribute('data-complete'),'true');
+ assert.ok(await animated.locator('.landing-cipher-source').evaluateAll(nodes=>nodes.every(n=>getComputedStyle(n).visibility==='visible')));
+ assert.equal(await animated.locator('.landing-cipher-glyph').count(),0);
  assert.equal(await animated.getByRole('textbox',{name:'Your message',exact:true}).inputValue(),'My draft');await animated.close();
  await page.close();assert.deepEqual(errors,[]);
  console.log('PASS: browser language, preference persistence, live switching, unmodified messages/links, editor, dialogs, PNG, viewer, mobile, translated errors and blocked storage.');

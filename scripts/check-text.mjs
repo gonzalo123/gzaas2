@@ -3,7 +3,7 @@ import {spawn} from 'node:child_process';
 import {mkdir} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {DEFAULT,ANIMATIONS,encodeState,decodeState} from '../src/state.mjs';
-import {REACT_BITS_TEXT} from '../src/text-motion.mjs';
+import {REACT_BITS_TEXT,REACT_BITS_MORE_TEXT} from '../src/text-motion.mjs';
 const base=process.env.TEST_BASE_URL||'http://127.0.0.1:4181',output=process.env.TEST_ARTIFACTS||'/tmp/gzaas-text-check';
 const server=process.env.TEST_BASE_URL?null:spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','127.0.0.1','--port','4181','--strictPort'],{stdio:'ignore'});
 const state={...DEFAULT,text:'CADA\nPALABRA\nCUENTA.',font:'anton',fg:'#fff5ed',bg:'#171020',accent:'#ba91e8',backdrop:'solid',backdropMotion:false,repeat:false};
@@ -21,6 +21,9 @@ try{
  const canvas=page.locator('.react-bits-text-canvas'),cards=page.locator('.motion-react-bits .motion-card');
  assert.equal(await cards.count(),8);
  for(const animation of REACT_BITS_TEXT){
+  const group=page.getByRole('button',{name:REACT_BITS_MORE_TEXT.includes(animation)?'React Bits II':'React Bits',exact:true});
+  if(await group.getAttribute('aria-pressed')!=='true')await group.click();
+  assert.equal(await cards.count(),8);
   await page.getByRole('button',{name:ANIMATIONS.find(a=>a.id===animation).name,exact:true}).click();
   await canvas.waitFor();await page.waitForTimeout(160);
   await page.waitForURL(u=>decodeState(u.hash.replace('#edit:','#')).animation===animation);
@@ -32,7 +35,7 @@ try{
   await page.screenshot({path:output+'/'+animation+'-desktop.png'});
   await page.getByRole('button',{name:'Reanudar animación',exact:true}).click();
  }
- console.log('PASS: eight selectable effects, shared URLs, real motion and pause');
+ console.log('PASS: sixteen selectable effects in two collections, shared URLs, real motion and pause');
  const samples=await page.evaluate(async({state,ids})=>{
   const {createTextRenderer}=await import('/src/react-bits-text-renderer.ts');
   const {paint,waitFonts}=await import('/src/render.ts'),{gifFrameRenderer}=await import('/src/gif-frame.ts');
@@ -56,7 +59,7 @@ try{
  },{state,ids:REACT_BITS_TEXT});
  for(const result of samples)for(const [key,value] of Object.entries(result))if(key!=='animation')assert.ok(value,result.animation+': '+key);
  console.log('PASS: deterministic seeking; final/reduced text matches PNG; multilingual text, fonts and effects');
- for(const animation of ['rb-type','rb-stroke']){
+ for(const animation of ['rb-type','rb-stroke',...REACT_BITS_MORE_TEXT]){
   const result=await page.evaluate(async state=>{
    const {exportGif}=await import('/src/export-gif.ts');
    const result=await exportGif(state,'landscape',new AbortController().signal,()=>{});
@@ -74,17 +77,20 @@ try{
  assert.equal(await page.locator('.viewer').count(),1);
  const reduced=await canvas.evaluate(c=>c.toDataURL());await page.waitForTimeout(150);assert.equal(await canvas.evaluate(c=>c.toDataURL()),reduced);
  await page.setViewportSize({width:390,height:844});await page.goto(url('rb-fold'));if(!await cards.first().isVisible())await page.getByRole('tab',{name:'Movimiento',exact:true}).click();
- assert.equal(await cards.count(),8);
- for(const card of await cards.all()){const b=await card.boundingBox();assert.ok(b.x>=0&&b.x+b.width<=390,'cards fit mobile width');}
- const settings=await page.locator('.motion-settings').boundingBox(),panel=await page.locator('#editor-panel').boundingBox();
- assert.ok(settings.y+settings.height<=panel.y+panel.height+1,'pace and loop fit mobile panel');
- await page.screenshot({path:output+'/mobile.png'});
+ for(const name of ['React Bits','React Bits II']){
+  const group=page.getByRole('button',{name,exact:true});if(await group.getAttribute('aria-pressed')!=='true')await group.click();
+  assert.equal(await cards.count(),8);
+  for(const card of await cards.all()){const b=await card.boundingBox();assert.ok(b.x>=0&&b.x+b.width<=390,'cards fit mobile width');}
+  const settings=await page.locator('.motion-settings').boundingBox(),panel=await page.locator('#editor-panel').boundingBox();
+  assert.ok(settings.y+settings.height<=panel.y+panel.height+1,'pace and loop fit mobile panel');
+  await page.screenshot({path:output+'/mobile-'+name.replaceAll(' ','-')+'.png'});
+ }
  await page.getByRole('button',{name:'Letras',exact:true}).click();assert.equal(await canvas.count(),0);assert.equal(await page.locator('.motion-card[aria-pressed="true"]').count(),1);
  assert.deepEqual(errors,[]);
  console.log('PASS: viewer, reduced motion, mobile controls and return to classic motion');
  if(process.env.TEST_PREVIEW_FILE){
   await page.route(/^https?:/,route=>route.abort());
   for(const animation of REACT_BITS_TEXT){await page.goto('file://'+process.env.TEST_PREVIEW_FILE+encodeState({...state,animation}));await canvas.waitFor();}
-  console.log('PASS: all eight text effects work in standalone HTML offline');
+  console.log('PASS: all sixteen text effects work in standalone HTML offline');
  }
 }finally{await browser?.close();server?.kill();}

@@ -2,7 +2,7 @@ import {useCallback,useEffect,useRef,useState} from 'react';
 import {rouletteSchedule,rouletteSequence} from './roulette.mjs';
 import {PRESETS} from './state.mjs';
 
-// Flashes a few presets, slowing down, and lands on PRESETS[finalIndex].
+// Flashes a few presets, slowing down; the caller applies the final random design.
 // `step` is called for every flash (final=true on the last one), `done` right after it.
 export function useRoulette(){
  const timer=useRef<ReturnType<typeof setTimeout>>(undefined);

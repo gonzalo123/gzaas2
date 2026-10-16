@@ -1,5 +1,7 @@
-export const REACT_BITS_TEXT = ['rb-type','rb-decrypt','rb-shuffle','rb-glitch','rb-focus','rb-fold','rb-echo','rb-stroke'];
+export const REACT_BITS_MORE_TEXT = ["rb-shiny", "rb-gradient", "rb-flap", "rb-depth", "rb-tech", "rb-fuzzy", "rb-falling", "rb-rotate"];
+export const REACT_BITS_TEXT = ['rb-type','rb-decrypt','rb-shuffle','rb-glitch','rb-focus','rb-fold','rb-echo','rb-stroke',...REACT_BITS_MORE_TEXT];
 export const TEXT_DURATION = 6000;
+export const isMoreReactBitsText = animation => REACT_BITS_MORE_TEXT.includes(animation);
 export const isReactBitsText = animation => REACT_BITS_TEXT.includes(animation);
 export const textTempo = pace => pace==='slow'?1.45:pace==='fast'?.7:1;
 

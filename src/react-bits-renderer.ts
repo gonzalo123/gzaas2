@@ -8,6 +8,8 @@
 import {createShaderRenderer,createSilkRenderer,type ShaderPattern,type Palette} from './silk-renderer';
 import {extraPatterns} from './react-bits-patterns';
 import {createCanvasBackdrop} from './react-bits-canvas';
+import {morePatterns} from './react-bits-more-patterns';
+import {createMoreCanvasBackdrop} from './react-bits-more-canvas';
 import {perlin} from './react-bits-noise';
 
 const header=`precision highp float;
@@ -110,9 +112,9 @@ export function createReactBitsRenderer(state:Palette&{backdrop:string},width:nu
   case 'iridescence':return createShaderRenderer(state,width,height,software,iridescence);
   case 'color-bends':return createShaderRenderer(state,width,height,software,colorBends);
   default:{
-   const canvas=createCanvasBackdrop(state,width,height);
+   const canvas=createCanvasBackdrop(state,width,height)??createMoreCanvasBackdrop(state,width,height);
    if(canvas)return canvas;
-   const pattern=extraPatterns[state.backdrop];
+   const pattern=extraPatterns[state.backdrop]??morePatterns[state.backdrop];
    if(pattern)return createShaderRenderer(state,width,height,software,pattern);
    throw Error('Fondo no compatible.');
   }

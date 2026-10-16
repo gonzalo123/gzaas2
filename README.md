@@ -20,7 +20,7 @@ npm run build
 
 La regresión de la landing se ejecuta con `npm run test:landing` (Chromium de
 Playwright instalado, o `CHROME_PATH=/ruta/a/Chrome`). Observa la reproducción
-real en los tres estilos: orden de letras, cursor único, dos parpadeos finales,
+real en los tres estilos: descifrado progresivo, posición estable de las palabras,
 carga lenta de fuentes, escritura simultánea, resize y movimiento reducido.
 
 El resultado de `dist/` se puede publicar en cualquier alojamiento estático. No necesita backend, base de datos, API keys ni cookies. Solo la preferencia de idioma se guarda en `localStorage`. Las fuentes se sirven desde el mismo sitio.
@@ -79,12 +79,12 @@ Máximo 280 caracteres Unicode, 12 líneas y 4096 caracteres de fragmento; la de
 
 ## Funciones
 
-- Inicio centrado en escribir: «gzaas!» tiene una entrada animada y una de tres combinaciones de tipografía, color y fondo elegida al abrir la landing. Reutiliza los efectos Letras, Rebote y Órbita y los fondos Malla, Aurora y Ondas. El fondo se detiene a los 4,5 segundos o al entrar en el campo; la combinación permanece estable al escribir. Respeta movimiento reducido. El subtítulo usa DM Serif Display, se escribe letra a letra y termina con dos parpadeos del cursor; con movimiento reducido aparece completo y sin cursor. El formulario mantiene una sola acción principal, «gzaas it!», sin textos auxiliares visibles. Enter abre el editor con el mensaje y un estilo elegido al azar entre los 24 disponibles; Shift+Enter añade una línea. El campo crece y se encoge automáticamente con el texto, el pegado y el ancho de pantalla, sin scroll interior. Las opciones de diseño y movimiento aparecen después.
+- Inicio centrado en escribir: «gzaas!» tiene una entrada animada y una de tres combinaciones de tipografía, color y fondo elegida al abrir la landing. El logo sortea entradas breves entre Letras, Rebote, Órbita y versiones suaves de Plegado y Estelas, de una sola reproducción; la paleta sigue usando los fondos Malla, Aurora y Ondas. El fondo se detiene a los 4,5 segundos o al entrar en el campo; la combinación permanece estable al escribir. Respeta movimiento reducido. El subtítulo conserva DM Serif Display y se descifra de izquierda a derecha durante 1,2 segundos, después de una pausa inicial de medio segundo. Los símbolos son discretos y ocupan exactamente el espacio de sus letras; las palabras reservan desde el principio su composición final. Al terminar queda el texto nativo, sin cursor ni bucle. La animación es propia y reutiliza el ruido reproducible del proyecto, sin código de React Bits Pro. Con movimiento reducido o si falla la carga de la fuente aparece la frase completa. El formulario mantiene una sola acción principal, «gzaas it!», sin textos auxiliares visibles. Enter abre el editor con el mensaje y un estilo elegido al azar entre los 24 disponibles; Shift+Enter añade una línea. El campo crece y se encoge automáticamente con el texto, el pegado y el ancho de pantalla, sin scroll interior. Las opciones de diseño y movimiento aparecen después.
 - Editor ajustado a la altura de la pantalla: vista previa siempre visible, controles en pestañas Texto / Estilos / Diseño / Fondos / Movimiento y acciones de compartir y descargar en la barra superior. Las pestañas se recorren con flechas, Home y End. En pantallas excepcionalmente pequeñas o con zoom, el panel de opciones permite desplazamiento sin mover la vista previa.
 - 24 estilos en cuatro colecciones de seis: Esenciales, Noche y neón, Pop y retro y Con carácter. Se recorren sin scroll.
 - Doce fuentes de Google Fonts incluidas localmente, con selector visual que muestra cada tipografía: Bebas Neue, DM Serif Display, DM Sans, Anton, Bungee, Bungee Shade, Monoton, Permanent Marker, Pacifico, Righteous, Space Grotesk y Abril Fatface.
-- Veinticuatro fondos en tres colecciones de ocho, navegables como los estilos: Ambientes y gráficos; React Bits (Seda, Iridescencia, Hilos, Color Bends, Plasma, Persianas, Rayos de luz y Balatro); y React Bits II (Orbe, Relámpagos, Trama retro, Puntos vivos, Cuadrícula líquida, Ondas de líneas, Nieve pixelada y Líneas flotantes). Colores base y acento editables y movimiento independiente del texto. Texturas opcionales, sombras, contorno, neón y eco 3D.
-- «Sorpréndeme» sortea la paleta y el fondo de forma independiente entre todos los estilos y las tres colecciones de fondos; evita repetir la paleta y el fondo activos. Al crear un mensaje desde el inicio también puede salir cualquiera de los 24 fondos. Las transiciones de la ruleta usan diseños estáticos y el resultado final conserva el fondo elegido.
+- Treinta y dos fondos en cuatro colecciones de ocho, navegables como los estilos: Ambientes y gráficos; React Bits (Seda, Iridescencia, Hilos, Color Bends, Plasma, Persianas, Rayos de luz y Balatro); React Bits II (Orbe, Relámpagos, Trama retro, Puntos vivos, Cuadrícula líquida, Ondas de líneas, Nieve pixelada y Líneas flotantes); y React Bits III (Velo oscuro, Grano fluido, Cromo líquido, Prisma, Pilar de luz, Escáner 3D, Explosión píxel y Galaxia). Colores base y acento editables y movimiento independiente del texto. Texturas opcionales, sombras, contorno, neón y eco 3D.
+- «Sorpréndeme» sortea de forma independiente la paleta, cualquiera de los 32 fondos y cualquiera de las 32 animaciones del catálogo: incluye los dieciséis efectos de texto React Bits, partículas, tráiler y texto estático. Evita repetir la paleta, el fondo y la animación activos. Al crear un mensaje desde el inicio se usa el mismo catálogo completo. La selección se obtiene directamente de `ANIMATIONS`, de modo que las futuras incorporaciones también entran en el sorteo. Las transiciones de la ruleta usan diseños estáticos y el resultado final conserva el fondo y la animación elegidos.
 - Diseño adaptable a móvil y escritorio, con vista de lectura a toda pantalla.
 - Enlace comprimido, portapapeles con alternativa manual y Web Share cuando existe. Imagen o GIF junto al enlace en dispositivos compatibles, y miniatura social común para enlaces pegados.
 - Descarga local en PNG o GIF desde el mismo selector, en 4:3, 1:1 y 3:4. El GIF incluye letras, fondos y todas las escenas del tráiler, con ritmo y bucle configurados; muestra progreso, permite cancelar y ofrece una vista previa antes de descargar. El PNG mantiene el mensaje completo en alta resolución.
@@ -280,7 +280,11 @@ Safari/Firefox, adaptación de calidad basada en tiempos GPU y morphing continuo
 **Movimiento → React Bits** reúne ocho efectos: Escritura (Text Type),
 Descifrar (Decrypted Text), Barajar (Shuffle), Glitch (Glitch Text), Foco por
 palabras (True Focus), Plegado (Fold Text), Estelas (Echo Text) y Trazado
-(Stroke Text). Conservan tipografía, colores, alineación y efectos del diseño.
+(Stroke Text). **Movimiento → React Bits II** añade otros ocho: Destello
+(Shiny Text), Degradado vivo (Gradient Text), Panel mecánico (Split Flap Text),
+Profundidad (Depth Text), Trazo técnico (Tech Text), Texto difuso (Fuzzy Text),
+Caída libre (Falling Text) y Giro de palabras (Rotating Text). Los dieciséis
+conservan tipografía, colores, alineación y efectos del diseño.
 Cada secuencia dura seis segundos con ritmo normal, incluye una pausa de
 lectura y admite ritmo, bucle, pausa y repetición manual. Los enlaces guardan
 el efecto seleccionado sin cambiar el formato v1.
@@ -293,7 +297,7 @@ mantienen juntos emojis y modificadores. El PNG y el modo de movimiento
 reducido muestran el mensaje completo, con el mismo dibujo que el final de
 una reproducción única. El bucle se cierra con una breve salida y entrada.
 
-`npm run test:text` comprueba los ocho selectores, pausa, enlaces, móvil,
+`npm run test:text` comprueba los dieciséis selectores en sus dos grupos, pausa, enlaces, móvil,
 movimiento reducido, muestreo reproducible, fuentes, efectos y texto Unicode.
 También compara el final del GIF con el PNG y decodifica archivos GIF reales.
 Se puede añadir `TEST_PREVIEW_FILE=/tmp/gzaas-preview.html` para comprobar
@@ -317,7 +321,15 @@ Adaptaciones de [Silk](https://reactbits.dev/backgrounds/silk),
 [Ripple Grid](https://reactbits.dev/backgrounds/ripple-grid),
 [Waves](https://reactbits.dev/backgrounds/waves),
 [Pixel Snow](https://reactbits.dev/backgrounds/pixel-snow) y
-[Floating Lines](https://reactbits.dev/backgrounds/floating-lines), con los colores Base
+[Floating Lines](https://reactbits.dev/backgrounds/floating-lines),
+[Dark Veil](https://reactbits.dev/backgrounds/dark-veil),
+[Grainient](https://reactbits.dev/backgrounds/grainient),
+[Liquid Chrome](https://reactbits.dev/backgrounds/liquid-chrome),
+[Prism](https://reactbits.dev/backgrounds/prism),
+[Light Pillar](https://reactbits.dev/backgrounds/light-pillar),
+[Grid Scan](https://reactbits.dev/backgrounds/grid-scan),
+[Pixel Blast](https://reactbits.dev/backgrounds/pixel-blast) y
+[Galaxy](https://reactbits.dev/backgrounds/galaxy), con los colores Base
 y Acento del cartel. Se cargan bajo demanda, sin dependencias nuevas. El editor,
 el visor y las descargas usan el mismo renderizador por tiempo:
 PNG toma el fotograma estático inicial y GIF conserva el movimiento. El ciclo del
@@ -340,9 +352,19 @@ con distribución fija y tres bandas de líneas flotantes. Sus movimientos
 periódicos sustituyen la interacción con el cursor del original y se reproducen
 igual al exportar; no necesitan GPU ni recursos externos.
 
+React Bits III incorpora tres shaders con alternativa por software: Dark Veil
+conserva los pesos de su red neuronal y usa un máximo de 240 píxeles por software;
+Grainient combina ruido de dominio y grano, y Liquid Chrome deforma un campo
+trigonométrico con reflejos, ambos a 320 píxeles por software. Las ecuaciones son
+compartidas con sus versiones WebGL. Los otros cinco fondos usan Canvas 2D:
+una pirámide de caras proyectadas, un pilar luminoso, una habitación de
+cuadrículas con barrido, una nube de píxeles y un campo de estrellas con
+profundidad. Son adaptaciones periódicas de los efectos públicos de React Bits
+para conservar el aspecto en vista previa, PNG y GIF sin dependencias nuevas.
+
 «Fondos» muestra ocho opciones por colección: dos columnas en el panel lateral
 y cuatro columnas en la bandeja inferior. Las flechas recorren Ambientes y
-gráficos, React Bits y React Bits II sin cambiar el diseño.
+gráficos, React Bits, React Bits II y React Bits III sin cambiar el diseño.
 Un enlace o un cambio de estilo abre la colección del fondo seleccionado; los
 identificadores anteriores y los enlaces `v1` se conservan.
 
@@ -371,12 +393,15 @@ Abre `gzaas-preview.html` en un navegador moderno. Incluye el código, CSS y fue
 
 ## Validación de esta entrega
 
-Build de producción y comprobación TypeScript correctos. Treinta y nueve tests: nueve de partículas, siete de su integración y mezcla en tráiler, tres de archivos compartidos, enlaces públicos y compatibilidad; diez del formato de URL, incluyendo todas las combinaciones de fuentes, fondos y efectos, animación, ritmo y repetición y compatibilidad con enlaces antiguos; cinco de segmentación, grafemas, secuencias, tiempos, cierre y bucles del tráiler; cinco de proporciones, fotogramas, tiempos GIF, secuencias completas y exportación estática. Revisión visual e interacción en Chrome en escritorio y móvil: colecciones, selector de fuentes, animación por letras y de fondos, pausa, repetición, visor, enlaces compartidos, créditos y movimiento reducido. Exportación GIF comprobada sin conexión desde la demo HTML: fuentes, efectos, tráiler completo, bucle, cancelación y PNG; archivos GIF decodificados para verificar fotogramas, tiempos y proporciones. El diálogo cabe sin scroll en las nueve resoluciones de escritorio y móvil revisadas. Compartir PNG y GIF con enlace comprobado con un menú nativo simulado, incluyendo activación del usuario, cancelación y descarga alternativa; no se ha enviado a WhatsApp. Metadatos sociales estáticos e imagen PNG de 1200 × 630 comprobados en el build; la tarjeta en apps de terceros se comprobará tras publicar. La integración WebMCP no se ha validado en un navegador que la implemente.
+Build de producción y comprobación TypeScript correctos. Setenta tests automáticos cubren partículas y Galaxy, integración y mezcla en tráiler, archivos compartidos, enlaces públicos y compatibilidad, formato de URL, colecciones completas, aleatorio, traducciones, descifrado, animaciones de texto y tiempos de exportación GIF. Revisión visual e interacción en Chrome en escritorio y móvil: colecciones, selector de fuentes, animación por letras y de fondos, pausa, repetición, visor, enlaces compartidos, créditos y movimiento reducido. Exportación GIF comprobada sin conexión desde la demo HTML: fuentes, efectos, tráiler completo, bucle, cancelación y PNG; archivos GIF decodificados para verificar fotogramas, tiempos y proporciones. El diálogo cabe sin scroll en las nueve resoluciones de escritorio y móvil revisadas. Compartir PNG y GIF con enlace comprobado con un menú nativo simulado, incluyendo activación del usuario, cancelación y descarga alternativa; no se ha enviado a WhatsApp. Metadatos sociales estáticos e imagen PNG de 1200 × 630 comprobados en el build; la tarjeta en apps de terceros se comprobará tras publicar. La integración WebMCP no se ha validado en un navegador que la implemente.
 
 Los fondos Silk, Iridescence, Threads, Color Bends, Plasma, Gradient Blinds,
 Light Rays, Balatro, Orb, Lightning, Dither, Dot Grid, Ripple Grid, Waves,
-Pixel Snow y Floating Lines, y las animaciones Text Type, Decrypted Text,
-Shuffle, Glitch Text, True Focus, Fold Text, Echo Text y Stroke Text adaptan los efectos de
+Pixel Snow, Floating Lines, Dark Veil, Grainient, Liquid Chrome, Prism,
+Light Pillar, Grid Scan, Pixel Blast y Galaxy, y las animaciones Text Type,
+Decrypted Text, Shuffle, Glitch Text, True Focus, Fold Text, Echo Text, Stroke Text,
+Shiny Text, Gradient Text, Split Flap Text, Depth Text, Tech Text, Fuzzy Text,
+Falling Text y Rotating Text adaptan los efectos de
 **React Bits, David Haz**, bajo
 MIT + Commons Clause. Su licencia se conserva en
 [`public/licenses/react-bits.txt`](public/licenses/react-bits.txt), también incluida

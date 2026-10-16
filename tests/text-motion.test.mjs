@@ -1,14 +1,15 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {REACT_BITS_TEXT,TEXT_DURATION,textTempo,textPlayback,textNoise} from '../src/text-motion.mjs';
+import {REACT_BITS_TEXT,REACT_BITS_MORE_TEXT,TEXT_DURATION,textTempo,textPlayback,textNoise} from '../src/text-motion.mjs';
 import {DEFAULT,ANIMATIONS,encodeState,decodeState} from '../src/state.mjs';
 import {exportPlan} from '../src/export-plan.mjs';
 
-test('all eight text animations share their identity and timing through links and GIF plans',()=>{
- assert.equal(REACT_BITS_TEXT.length,8);
- assert.equal(new Set(REACT_BITS_TEXT).size,8);
+test('both collections of eight text animations share their identity and timing through links and GIF plans',()=>{
+ assert.equal(REACT_BITS_TEXT.length,16);
+ assert.equal(REACT_BITS_MORE_TEXT.length,8);
+ assert.equal(new Set(REACT_BITS_TEXT).size,16);
  for(const animation of REACT_BITS_TEXT){
-  assert.ok(ANIMATIONS.some(a=>a.id===animation&&a.group==='react-bits'));
+  assert.ok(ANIMATIONS.some(a=>a.id===animation&&a.group===(REACT_BITS_MORE_TEXT.includes(animation)?'react-bits-ii':'react-bits')));
   for(const pace of ['slow','normal','fast'])for(const repeat of [false,true]){
    const state={...DEFAULT,text:'Sí 👩🏽‍💻\n你好',animation,pace,repeat};
    assert.deepEqual(decodeState(encodeState(state)),state);

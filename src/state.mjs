@@ -22,18 +22,37 @@ export const BACKDROPS = [
  {id:'plasma',name:'Plasma'}, {id:'gradient-blinds',name:'Persianas'}, {id:'light-rays',name:'Rayos de luz'}, {id:'balatro',name:'Balatro'},
  {id:'orb',name:'Orbe'}, {id:'lightning',name:'Relámpagos'}, {id:'dither',name:'Trama retro'}, {id:'dot-grid',name:'Puntos vivos'},
  {id:'ripple-grid',name:'Cuadrícula líquida'}, {id:'waves-lines',name:'Ondas de líneas'}, {id:'pixel-snow',name:'Nieve pixelada'}, {id:'floating-lines',name:'Líneas flotantes'},
+ {"id": "dark-veil", "name": "Velo oscuro"},
+ {"id": "grainient", "name": "Grano fluido"},
+ {"id": "liquid-chrome", "name": "Cromo líquido"},
+ {"id": "prism", "name": "Prisma"},
+ {"id": "light-pillar", "name": "Pilar de luz"},
+ {"id": "grid-scan", "name": "Escáner 3D"},
+ {"id": "pixel-blast", "name": "Explosión píxel"},
+ {"id": "galaxy", "name": "Galaxia"},
 ];
+export const REACT_BITS_LATEST_BACKDROPS = ["dark-veil", "grainient", "liquid-chrome", "prism", "light-pillar", "grid-scan", "pixel-blast", "galaxy"];
 export const REACT_BITS_MORE_BACKDROPS = ['orb','lightning','dither','dot-grid','ripple-grid','waves-lines','pixel-snow','floating-lines'];
-export const REACT_BITS_BACKDROPS = ['silk','iridescence','threads','color-bends','plasma','gradient-blinds','light-rays','balatro',...REACT_BITS_MORE_BACKDROPS];
+export const REACT_BITS_BACKDROPS = ['silk','iridescence','threads','color-bends','plasma','gradient-blinds','light-rays','balatro',...REACT_BITS_MORE_BACKDROPS,...REACT_BITS_LATEST_BACKDROPS];
 export const BACKDROP_COLLECTIONS = [
  {name:'Ambientes y gráficos',ids:['solid','aurora','mesh','sunset','rays','stars','checker','waves']},
  {name:'React Bits',ids:REACT_BITS_BACKDROPS.slice(0,8)},
  {name:'React Bits II',ids:REACT_BITS_MORE_BACKDROPS},
+ {name:'React Bits III',ids:REACT_BITS_LATEST_BACKDROPS},
 ];
 export const isReactBitsBackdrop = id => REACT_BITS_BACKDROPS.includes(id);
 export const backdropCollection = id => Math.max(0,BACKDROP_COLLECTIONS.findIndex(collection=>collection.ids.includes(id)));
 export const COLLECTIONS = ['Esenciales','Noche y neón','Pop y retro','Con carácter'];
 export const ANIMATIONS = [
+ {"id": "rb-shiny", "name": "Destello", "description": "Shiny Text · Un reflejo de luz recorre las letras.", "mark": "✧", "group": "react-bits-ii"},
+ {"id": "rb-gradient", "name": "Degradado vivo", "description": "Gradient Text · Los colores fluyen dentro del mensaje.", "mark": "◒", "group": "react-bits-ii"},
+ {"id": "rb-flap", "name": "Panel mecánico", "description": "Split Flap Text · Las letras giran como un panel de estación.", "mark": "▤", "group": "react-bits-ii"},
+ {"id": "rb-depth", "name": "Profundidad", "description": "Depth Text · Capas de volumen dan relieve al texto.", "mark": "▱", "group": "react-bits-ii"},
+ {"id": "rb-tech", "name": "Trazo técnico", "description": "Tech Text · Trazos discontinuos y guías construyen el mensaje.", "mark": "⌁", "group": "react-bits-ii"},
+ {"id": "rb-fuzzy", "name": "Texto difuso", "description": "Fuzzy Text · Una vibración de líneas se resuelve en letras nítidas.", "mark": "≋", "group": "react-bits-ii"},
+ {"id": "rb-falling", "name": "Caída libre", "description": "Falling Text · Las palabras caen y regresan a su sitio.", "mark": "↡", "group": "react-bits-ii"},
+ {"id": "rb-rotate", "name": "Giro de palabras", "description": "Rotating Text · Las palabras giran y revelan el mensaje completo.", "mark": "↶", "group": "react-bits-ii"},
+
  {"id": "rb-type", "name": "Escritura", "description": "Text Type · El mensaje se escribe con un cursor, sin mover las líneas.", "mark": "A|", "group": "react-bits"},
  {"id": "rb-decrypt", "name": "Descifrar", "description": "Decrypted Text · Los símbolos revelan tu mensaje, letra a letra.", "mark": "#", "group": "react-bits"},
  {"id": "rb-shuffle", "name": "Barajar", "description": "Shuffle · Las letras se reordenan hasta encontrar su sitio.", "mark": "⤨", "group": "react-bits"},

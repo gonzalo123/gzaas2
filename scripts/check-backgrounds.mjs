@@ -23,6 +23,7 @@ try{
  assert.ok(!requests.some(r=>r.includes('react-bits-renderer')||r.includes('silk-renderer')),'classic collections load no shaders');
  const original=page.url();await next();assert.match(await group.innerText(),/React Bits/);assert.equal(page.url(),original,'browsing collections does not edit state');
  await next();assert.match(await group.innerText(),/React Bits II/);
+ await next();assert.match(await group.innerText(),/React Bits III/);
  await next();assert.match(await group.innerText(),/Ambientes y gráficos/);
  await page.getByRole('tab',{name:'Estilos',exact:true}).click();assert.ok(await page.getByRole('button',{name:'Colección siguiente',exact:true}).isVisible());
  await openBackgrounds();assert.match(await group.innerText(),/Ambientes y gráficos/);await next();
@@ -31,11 +32,11 @@ try{
   for(let attempt=0;attempt<BACKDROP_COLLECTIONS.length&&!await page.getByRole('button',{name,exact:true}).count();attempt++)await next();
   await page.getByRole('button',{name,exact:true}).click();
   await page.waitForSelector(`.poster-art .backdrop-canvas[data-backdrop="${id}"][data-backend]`);
-  assert.equal(await canvas.getAttribute('data-backend'),id==='threads'||REACT_BITS_MORE_BACKDROPS.includes(id)?'canvas':'webgl','uses the intended renderer');
+  assert.equal(await canvas.getAttribute('data-backend'),id==='threads'||REACT_BITS_MORE_BACKDROPS.includes(id)||['prism','light-pillar','grid-scan','pixel-blast','galaxy'].includes(id)?'canvas':'webgl','uses the intended renderer');
   await page.waitForURL(u=>decodeState(u.hash.replace('#edit:','#')).backdrop===id);
   assert.equal(await cards.count(),8);assert.match(await group.innerText(),/React Bits/);
   const snapshot=()=>canvas.evaluate(c=>c.toDataURL());
-  const first=await snapshot();await page.waitForTimeout(250);assert.notEqual(await snapshot(),first,`${id} moves`);
+  const first=await snapshot();await page.waitForTimeout(250);assert.ok(await snapshot()!==first,`${id} moves`);
   await page.getByRole('button',{name:'Pausar animación',exact:true}).click();await page.waitForTimeout(50);const paused=await snapshot();await page.waitForTimeout(200);assert.ok(await snapshot()===paused,`${id}: paused pixels stay frozen`);
   await page.screenshot({path:`${output}/${id}-desktop.png`});
   await page.getByLabel('Animar el fondo',{exact:true}).uncheck();await page.waitForTimeout(100);const still=await snapshot();
@@ -60,7 +61,7 @@ try{
    for(const frameIndex of [0,18,36]){const {image}=await decoder.decode({frameIndex}),c=new OffscreenCanvas(640,480),ctx=c.getContext('2d');ctx.drawImage(image,0,0);const data=ctx.getImageData(0,0,640,480).data;let hash=0;for(let i=0;i<data.length;i+=4)hash=(Math.imul(hash,31)+data[i])|0;hashes.push(hash);image.close();}decoder.close();
    return {zero,quarter,loop,seek,diff,paceMatches,pngMatches,count,hashes,png:png.toDataURL(),gif:await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.readAsDataURL(gif.blob);})};
   },{...state,backdrop:id});
-  assert.notEqual(result.zero,result.quarter);assert.ok(result.zero===result.loop,`${id}: exact loop`);assert.ok(result.quarter===result.seek,`${id}: deterministic seeking`);
+  assert.ok(result.zero!==result.quarter,`${id} moves at explicit times`);assert.ok(result.zero===result.loop,`${id}: exact loop`);assert.ok(result.quarter===result.seek,`${id}: deterministic seeking`);
   assert.ok(result.diff<2,`${id}: CPU/GPU mean error ${result.diff}`);assert.ok(result.paceMatches);assert.ok(result.pngMatches);assert.equal(result.count,72);assert.equal(new Set(result.hashes).size,3);
   await writeFile(`${output}/${id}.png`,Buffer.from(result.png.split(',')[1],'base64'));await writeFile(`${output}/${id}.gif`,Buffer.from(result.gif.split(',')[1],'base64'));
   console.log(`PASS: ${id} selection, pause, reduced motion, deterministic loop, PNG, real GIF, CPU/GPU agreement (${result.diff.toFixed(3)})`);
@@ -84,7 +85,7 @@ try{
    const c=document.createElement('canvas');await paint(c,state,240,180);const png=c.toDataURL();
    const r=await gifFrameRenderer(c,state,240,180);r.draw(0);const first=c.toDataURL();r.draw(1500);const second=c.toDataURL();r.dispose();return {png,first,second};
   },{...state,backdrop});
-  assert.ok(result.png===result.first,`${backdrop}: fallback PNG equals static frame`);assert.notEqual(result.first,result.second);
+  assert.ok(result.png===result.first,`${backdrop}: fallback PNG equals static frame`);assert.ok(result.first!==result.second);
  }
  await fallback.close();assert.deepEqual(errors,[]);
  console.log('PASS: collections wrap, browsing preserves design, styles remain independent, mobile grid, shared viewer, all renderers without WebGL');
@@ -94,6 +95,6 @@ try{
    await page.goto('file://'+process.env.TEST_PREVIEW_FILE+encodeState({...state,backdrop}));
    await page.waitForSelector(`.backdrop-canvas[data-backdrop="${backdrop}"][data-backend]`);
   }
-  console.log('PASS: all sixteen React Bits backgrounds work in standalone HTML offline');
+  console.log('PASS: all twenty-four React Bits backgrounds work in standalone HTML offline');
  }
 }finally{await browser?.close();server?.kill();}

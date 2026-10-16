@@ -8,13 +8,18 @@
 .landing-word{display:inline-block;padding:0 .12em .06em 0;white-space:nowrap;text-shadow:3px 5px 0 var(--landing-accent)}
 .landing-word>.motion-unit{display:inline-block;transform-origin:50% 80%}
 .landing-word>.motion-unit:last-child{margin-left:.025em}
+/* Restrained React Bits entrances for the logo: one pass, no extra renderer. */
+.landing-logo.motion-rb-fold,.landing-logo.motion-rb-echo{--entrance-duration:.8s}
+.landing-logo.motion-rb-fold .motion-unit{animation-name:landing-fold}
+.landing-logo.motion-rb-echo .motion-unit{animation-name:landing-echo}
+@keyframes landing-fold{from{opacity:0;transform:perspective(480px) rotateX(-55deg) translateY(.08em)}to{opacity:1;transform:none}}
+@keyframes landing-echo{from{opacity:0;transform:translateX(.12em);text-shadow:-.05em 0 0 var(--landing-accent),-.1em 0 0 var(--landing-accent)}to{opacity:1;transform:none;text-shadow:3px 5px 0 var(--landing-accent)}}
 .landing-tagline{font-family:'DM Serif Display',serif;font-size:clamp(23px,3.5vw,30px);font-weight:400;line-height:1.3;letter-spacing:-.5px;color:#393b39;margin:14px 0 42px}
-.landing-type-word{white-space:nowrap}
-.landing-type-char{position:relative;visibility:hidden}
-.landing-type-char[data-visible=true]{visibility:visible}
-.landing-type-caret{position:absolute;left:100%;top:.12em;height:.88em;border-left:1.5px solid currentColor;visibility:hidden;pointer-events:none}
-.landing-type-char[data-visible=false]>.landing-type-caret{left:0}
-.landing-type-caret[data-visible=true]{visibility:visible}
+/* Native words reserve the exact final layout; only overlaid glyphs change. */
+.landing-cipher-word{position:relative;display:inline-block;white-space:nowrap}
+.landing-tagline[data-complete=false] .landing-cipher-source{visibility:hidden}
+.landing-cipher-glyph{position:absolute;top:0;bottom:0;white-space:pre;pointer-events:none;opacity:var(--cipher-opacity)}
+.landing-cipher-glyph>span{position:absolute;top:0;transform-origin:left center}
 .landing-form{text-align:left}
 .landing-composer{background:#ffffffed;border:1px solid #ffffff;border-radius:18px;padding:6px;box-shadow:0 12px 50px #3631260a,0 1px 4px #3631260d;transition:box-shadow .2s,border-color .2s}
 .landing-composer:focus-within{border-color:var(--landing-ink);box-shadow:0 0 0 3px var(--landing-accent),0 12px 50px #3631260a}
@@ -43,7 +48,7 @@
  .landing-logo{font-size:86px}.landing-tagline{font-size:23px;margin:6px 0 22px}
  .landing-form textarea{min-height:76px;padding-top:12px;padding-bottom:8px}
 }
-@media(prefers-reduced-motion:reduce){.landing .motion-unit,.landing .backdrop-shape{animation:none!important;opacity:1;transform:none;filter:none}.landing-type-char{visibility:visible}.landing-type-caret{display:none}}
+@media(prefers-reduced-motion:reduce){.landing .motion-unit,.landing .backdrop-shape{animation:none!important;opacity:1;transform:none;filter:none}.landing-tagline .landing-cipher-source{visibility:visible}.landing-cipher-glyph{display:none}}
 
 /* Writing big: the message becomes the poster from the first key; the composer docks to a bottom bar. */
 .landing-content{position:relative;z-index:2}

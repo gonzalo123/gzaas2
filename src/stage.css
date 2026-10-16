@@ -251,3 +251,18 @@
 .edit-app .motion-group button{white-space:nowrap}
 .edit-app .motion-react-bits .motion-name{line-height:1.15}
 @media(max-width:899px){.edit-app .motion-react-bits{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.edit-app .motion-react-bits .motion-card{min-width:0;min-height:48px;padding:5px;flex-direction:column;gap:2px}.edit-app .motion-react-bits .motion-demo{height:19px}.edit-app .motion-react-bits .motion-name{font-size:10px}}
+
+/* Six motion families remain readable on narrow panels. */
+.edit-app .motion-group{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));max-width:none}
+.edit-app .motion-react-bits .motion-card{position:relative}
+.edit-app .motion-react-bits .motion-check{position:absolute;right:5px;top:4px;font-size:11px}
+@media(max-width:899px){
+ .edit-app .motion-group button{padding:6px 5px}
+ .edit-app .panel-motion:has(.motion-react-bits){gap:8px}
+ .edit-app .motion-react-bits .motion-card{min-height:43px}
+ .edit-app .motion-react-bits .motion-demo{font-size:20px;height:18px}
+ .edit-app .panel-motion:has(.motion-react-bits) .motion-description{font-size:11px;line-height:1.25}
+ .edit-app .motion-settings{gap:8px 12px}
+ .edit-app .pace-control{gap:6px}
+ .edit-app .pace-control .segmented button{font-size:11px;padding:6px 7px}
+}
