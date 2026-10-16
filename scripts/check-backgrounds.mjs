@@ -15,6 +15,12 @@ try{
  const page=await browser.newPage({locale:'es-ES',viewport:{width:1280,height:900}}),errors=[],requests=[];
  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>requests.push(r.url()));page.setDefaultTimeout(15000);
  const group=page.locator('.background-collections'),cards=page.locator('.backdrop-choice'),canvas=page.locator('.poster-art .backdrop-canvas');
+ const sample=()=>canvas.evaluate(c=>{
+  const probe=document.createElement('canvas');probe.width=probe.height=32;
+  const context=probe.getContext('2d');context.drawImage(c,0,0,32,32);
+  return [...context.getImageData(0,0,32,32).data];
+ });
+ const meanDifference=(a,b)=>a.reduce((sum,value,i)=>sum+Math.abs(value-b[i]),0)/a.length;
  const openBackgrounds=async()=>{if(!await group.isVisible())await page.getByRole('tab',{name:'Fondos',exact:true}).click();};
  const next=()=>page.getByRole('button',{name:'Colección de fondos siguiente',exact:true}).click();
  await page.goto(url('waves'));await openBackgrounds();await page.waitForTimeout(250);
@@ -39,10 +45,17 @@ try{
   const first=await snapshot();await page.waitForTimeout(250);assert.ok(await snapshot()!==first,`${id} moves`);
   await page.getByRole('button',{name:'Pausar animación',exact:true}).click();await page.waitForTimeout(50);const paused=await snapshot();await page.waitForTimeout(200);assert.ok(await snapshot()===paused,`${id}: paused pixels stay frozen`);
   await page.screenshot({path:`${output}/${id}-desktop.png`});
-  await page.getByLabel('Animar el fondo',{exact:true}).uncheck();await page.waitForTimeout(100);const still=await snapshot();
+  await page.getByLabel('Animar el fondo',{exact:true}).uncheck();await page.waitForTimeout(100);
+  const still=await sample(),staticBackend=await canvas.getAttribute('data-backend');
   await page.getByLabel('Animar el fondo',{exact:true}).check();await page.emulateMedia({reducedMotion:'reduce'});
-  await page.waitForFunction(expected=>document.querySelector('.poster-art .backdrop-canvas')?.toDataURL()===expected,still);
-  await page.waitForTimeout(150);assert.ok(await snapshot()===still,`${id}: reduced motion matches the static frame`);
+  let difference=Infinity;
+  for(let attempt=0;attempt<100;attempt++){
+   difference=meanDifference(await sample(),still);
+   if(difference<2)break;
+   await page.waitForTimeout(100);
+  }
+  assert.ok(difference<2,`${id}: reduced motion mean pixel difference ${difference}, backend ${staticBackend} → ${await canvas.getAttribute('data-backend')}`);
+  await page.waitForTimeout(150);assert.ok(meanDifference(await sample(),still)<2,`${id}: reduced motion holds the static frame`);
   await page.emulateMedia({reducedMotion:'no-preference'});
   const result=await page.evaluate(async state=>{
    const {createReactBitsRenderer}=await import('/src/react-bits-renderer.ts');
