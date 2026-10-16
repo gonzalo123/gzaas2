@@ -1,5 +1,7 @@
 import {GalaxyStage} from './GalaxyStage';
 import {isGalaxy} from './galaxy.mjs';
+import {ReactBitsTextStage} from './ReactBitsTextStage';
+import {isReactBitsText} from './text-motion.mjs';
 import {ParticleStage} from './ParticleStage';
 import {isParticle} from './particles.mjs';
 import {useId,useLayoutEffect,useRef,useState,type CSSProperties} from 'react';
@@ -44,7 +46,7 @@ function PosterArtwork({state,paused=false,replay=0,onError,particleDuration,par
     {state.pattern==='dots'?<circle cx={step/2} cy={step/2} r={Math.max(1,unit/600)} fill={state.fg}/>:<path d={`M0 0 H${step*1.5}${state.pattern==='grid'?` M0 0 V${step*1.5}`:''}`} fill="none" stroke={state.fg} strokeWidth={Math.max(1,unit/900)}/>}
    </pattern></defs>
    {state.pattern!=='none'&&<rect width="100%" height="100%" fill={`url(#${patternId})`} opacity=".13"/>}
-   {!isParticle(state.animation)&&<g key={`${JSON.stringify(state)}:${replay}`} fontFamily={families[state.font]} fontSize={geometry.fontSize} fontWeight={geometry.weight} style={textStyle}>
+   {!isParticle(state.animation)&&!isReactBitsText(state.animation)&&<g key={`${JSON.stringify(state)}:${replay}`} fontFamily={families[state.font]} fontSize={geometry.fontSize} fontWeight={geometry.weight} style={textStyle}>
     {geometry.lines.map((line,lineIndex)=><g key={lineIndex}>
      {(byLetter?line.letters:state.animation==='cascade'?line.words:[{text:line.text,x:line.x}]).map((word,wordIndex)=>{
       const delay=(byLetter?index++/Math.max(1,letterCount-1)*1.15:Math.min(index++*.105,.85))*tempo;
@@ -56,6 +58,7 @@ function PosterArtwork({state,paused=false,replay=0,onError,particleDuration,par
     </g>)}
    </g>}
   </svg>}
+  {geometry&&isReactBitsText(state.animation)&&<ReactBitsTextStage state={state} width={geometry.width} height={geometry.height} particleDuration={particleDuration} particleClock={particleClock} paused={paused} replay={replay} onError={onError}/>}
   {geometry&&isGalaxy(state.animation)&&<GalaxyStage state={state} width={geometry.width} height={geometry.height} particleDuration={particleDuration} particleClock={particleClock} paused={paused} replay={replay} onError={onError}/>}
   {geometry&&isParticle(state.animation)&&!isGalaxy(state.animation)&&<ParticleStage state={state} width={geometry.width} height={geometry.height} particleDuration={particleDuration} particleClock={particleClock} paused={paused} replay={replay} onError={onError}/>}
  </div>;

@@ -1,5 +1,23 @@
 // Spanish source messages are stable keys. Values may contain {named} parameters.
 export default {
+ "Escritura":"Typing",
+ "Text Type · El mensaje se escribe con un cursor, sin mover las líneas.":"Text Type · The message types itself with a cursor, keeping its layout.",
+ "Descifrar":"Decrypt",
+ "Decrypted Text · Los símbolos revelan tu mensaje, letra a letra.":"Decrypted Text · Symbols reveal your message, letter by letter.",
+ "Barajar":"Shuffle",
+ "Shuffle · Las letras se reordenan hasta encontrar su sitio.":"Shuffle · Letters reorder themselves until they find their place.",
+ "Glitch":"Glitch",
+ "Glitch Text · Interferencias breves que terminan en un mensaje nítido.":"Glitch Text · Brief interference resolves into a clear message.",
+ "Foco por palabras":"Word focus",
+ "True Focus · Un marco sigue cada palabra antes de enfocar todo el mensaje.":"True Focus · A frame follows each word before the whole message comes into focus.",
+ "Plegado":"Fold",
+ "Fold Text · Las líneas se despliegan como papel.":"Fold Text · Lines unfold like paper.",
+ "Estelas":"Trails",
+ "Echo Text · Varias siluetas siguen al texto y se funden en una.":"Echo Text · Text silhouettes follow and merge into one.",
+ "Trazado":"Outline drawing",
+ "Stroke Text · Primero el contorno, después el color.":"Stroke Text · First the outline, then the color.",
+ "No se pudo animar el texto. Prueba a recargar.":"The text could not be animated. Try reloading.",
+
  'Idioma':'Language',
  'Tus mensajes, a toda pantalla.':'Your words. Full screen.',
  'Algo que merezca verse en grande…':'Something worth saying big…',

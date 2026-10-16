@@ -1,3 +1,4 @@
+import {isReactBitsText} from './text-motion.mjs';
 import {isReactBitsBackdrop} from './state.mjs';
 import {isGalaxy,galaxyTime} from './galaxy.mjs';
 import {isParticle,particlePlaybackTime} from './particles.mjs';
@@ -11,15 +12,17 @@ export async function gifFrameRenderer(canvas:HTMLCanvasElement,state:Poster,wid
  const ctx=canvas.getContext('2d',{willReadFrequently:true});if(!ctx)throw Error('El navegador no puede crear la imagen.');
  const galaxy=isGalaxy(state.animation)?(await import('./galaxy-renderer')).createGalaxyRenderer(state,width,height,{exporting:true}):null;
  const geometry=layoutText(ctx,state,width,height),unit=Math.min(width,height),sampler=motionSampler();
+ let text:ReturnType<typeof import('./react-bits-text-renderer')['createTextRenderer']>|undefined;
  let animatedBackdrop:ReturnType<typeof import('./react-bits-renderer')['createReactBitsRenderer']>|undefined;
  try{
+ if(isReactBitsText(state.animation))text=(await import('./react-bits-text-renderer')).createTextRenderer(state,width,height,particleDuration);
  if(isReactBitsBackdrop(state.backdrop))animatedBackdrop=(await import('./react-bits-renderer')).createReactBitsRenderer(state,width,height);
  const tempo=state.pace==='slow'?1.45:state.pace==='fast'?.7:1;
  const byLetter=['letters','wave','bounce','orbit'].includes(state.animation),byPart=byLetter||state.animation==='cascade';
  const count=geometry.lines.reduce((n,l)=>n+l.letters.length,0),timing=textTiming(state.animation,state.repeat,tempo);
  let index=0;
  const field=!galaxy&&isParticle(state.animation)?createPosterParticles(state,width,height):null;
- const parts=field||galaxy?[]:geometry.lines.flatMap((line,lineIndex)=>(byLetter?line.letters:state.animation==='cascade'?line.words:[{text:line.text,x:line.x}]).map(word=>{
+ const parts=field||galaxy||text?[]:geometry.lines.flatMap((line,lineIndex)=>(byLetter?line.letters:state.animation==='cascade'?line.words:[{text:line.text,x:line.x}]).map(word=>{
   const delay=(byLetter?index++/Math.max(1,count-1)*1.15:Math.min(index++*.105,.85))*tempo*1000;
   const sample=sampler.create(timing.name,{duration:timing.duration,delay,easing:timing.easing}, {'--lift':`${geometry.fontSize*.25}px`,'--tilt':`${lineIndex%2?-3:3}deg`,'--float':`${Math.min(10,unit*.012)}px`});
   return {...word,y:line.y,pivot:line.y-geometry.fontSize*.35,sample};
@@ -34,6 +37,7 @@ export async function gifFrameRenderer(canvas:HTMLCanvasElement,state:Poster,wid
    paintTexture(ctx,state,width,height);
    if(galaxy){galaxy.draw(galaxyTime(time,state.pace,particleDuration,state.repeat));ctx.drawImage(galaxy.canvas,0,0,width,height);}
    if(field)drawParticles(ctx,field,state,width,height,particlePlaybackTime(time,state.pace,particleDuration));
+   text?.paintTo(ctx,time);
    for(const part of parts){
     const sample=part.sample(time),m=sample.matrix;
     if(sample.opacity<=0)continue;
@@ -42,7 +46,7 @@ export async function gifFrameRenderer(canvas:HTMLCanvasElement,state:Poster,wid
     paintTextUnit(ctx,state,geometry.fontSize,part.text,part.x,part.y,byPart?'left':state.align as CanvasTextAlign);ctx.restore();
    }
   },
-  dispose(){sampler.dispose();galaxy?.dispose();animatedBackdrop?.dispose();}
+  dispose(){sampler.dispose();galaxy?.dispose();animatedBackdrop?.dispose();text?.dispose();}
  };
- }catch(error){sampler.dispose();galaxy?.dispose();animatedBackdrop?.dispose();throw error;}
+ }catch(error){sampler.dispose();galaxy?.dispose();animatedBackdrop?.dispose();text?.dispose();throw error;}
 }

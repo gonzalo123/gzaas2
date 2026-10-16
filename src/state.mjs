@@ -34,6 +34,14 @@ export const isReactBitsBackdrop = id => REACT_BITS_BACKDROPS.includes(id);
 export const backdropCollection = id => Math.max(0,BACKDROP_COLLECTIONS.findIndex(collection=>collection.ids.includes(id)));
 export const COLLECTIONS = ['Esenciales','Noche y neón','Pop y retro','Con carácter'];
 export const ANIMATIONS = [
+ {"id": "rb-type", "name": "Escritura", "description": "Text Type · El mensaje se escribe con un cursor, sin mover las líneas.", "mark": "A|", "group": "react-bits"},
+ {"id": "rb-decrypt", "name": "Descifrar", "description": "Decrypted Text · Los símbolos revelan tu mensaje, letra a letra.", "mark": "#", "group": "react-bits"},
+ {"id": "rb-shuffle", "name": "Barajar", "description": "Shuffle · Las letras se reordenan hasta encontrar su sitio.", "mark": "⤨", "group": "react-bits"},
+ {"id": "rb-glitch", "name": "Glitch", "description": "Glitch Text · Interferencias breves que terminan en un mensaje nítido.", "mark": "ϟ", "group": "react-bits"},
+ {"id": "rb-focus", "name": "Foco por palabras", "description": "True Focus · Un marco sigue cada palabra antes de enfocar todo el mensaje.", "mark": "⌗", "group": "react-bits"},
+ {"id": "rb-fold", "name": "Plegado", "description": "Fold Text · Las líneas se despliegan como papel.", "mark": "⋈", "group": "react-bits"},
+ {"id": "rb-echo", "name": "Estelas", "description": "Echo Text · Varias siluetas siguen al texto y se funden en una.", "mark": "≋", "group": "react-bits"},
+ {"id": "rb-stroke", "name": "Trazado", "description": "Stroke Text · Primero el contorno, después el color.", "mark": "✎", "group": "react-bits"},
  {id:'particle-galaxy',name:'Particle Galaxy 3D',description:'Una galaxia se convierte en letras con volumen. Arrastra para explorar; toca para dispersar.',mark:'✺',group:'particles'},
  {id:'particle-assemble',name:'Ensamblar',description:'Particle Assemble · Una nube de luz encuentra las letras. Repite para volver a verla.',mark:'✦',group:'particles'},
  {id:'particle-explode',name:'Explosión',description:'Explode & Reform · El mensaje estalla y vuelve a formarse.',mark:'✷',group:'particles'},

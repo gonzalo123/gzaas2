@@ -275,6 +275,31 @@ Guarda capturas y un GIF en `/tmp/gzaas-galaxy-check` (configurable con
 Quedan para una siguiente iteración mediciones en móviles de gama baja y
 Safari/Firefox, adaptación de calidad basada en tiempos GPU y morphing continuo.
 
+## Animaciones de texto React Bits
+
+**Movimiento → React Bits** reúne ocho efectos: Escritura (Text Type),
+Descifrar (Decrypted Text), Barajar (Shuffle), Glitch (Glitch Text), Foco por
+palabras (True Focus), Plegado (Fold Text), Estelas (Echo Text) y Trazado
+(Stroke Text). Conservan tipografía, colores, alineación y efectos del diseño.
+Cada secuencia dura seis segundos con ritmo normal, incluye una pausa de
+lectura y admite ritmo, bucle, pausa y repetición manual. Los enlaces guardan
+el efecto seleccionado sin cambiar el formato v1.
+
+Son adaptaciones para carteles: la interacción con cursor y los disparadores
+de scroll se sustituyen por reproducción autónoma. Un renderer Canvas 2D
+compartido entre vista previa y GIF permite muestrear cualquier instante de
+forma reproducible; se carga solo al elegir uno de estos efectos. Los grafemas
+mantienen juntos emojis y modificadores. El PNG y el modo de movimiento
+reducido muestran el mensaje completo, con el mismo dibujo que el final de
+una reproducción única. El bucle se cierra con una breve salida y entrada.
+
+`npm run test:text` comprueba los ocho selectores, pausa, enlaces, móvil,
+movimiento reducido, muestreo reproducible, fuentes, efectos y texto Unicode.
+También compara el final del GIF con el PNG y decodifica archivos GIF reales.
+Se puede añadir `TEST_PREVIEW_FILE=/tmp/gzaas-preview.html` para comprobar
+la copia HTML sin conexión. Las adaptaciones conservan la licencia de React
+Bits en `public/licenses/react-bits.txt`.
+
 ## Fondos React Bits y colecciones
 
 Adaptaciones de [Silk](https://reactbits.dev/backgrounds/silk),
@@ -350,12 +375,14 @@ Build de producción y comprobación TypeScript correctos. Treinta y nueve tests
 
 Los fondos Silk, Iridescence, Threads, Color Bends, Plasma, Gradient Blinds,
 Light Rays, Balatro, Orb, Lightning, Dither, Dot Grid, Ripple Grid, Waves,
-Pixel Snow y Floating Lines adaptan los efectos de
+Pixel Snow y Floating Lines, y las animaciones Text Type, Decrypted Text,
+Shuffle, Glitch Text, True Focus, Fold Text, Echo Text y Stroke Text adaptan los efectos de
 **React Bits, David Haz**, bajo
 MIT + Commons Clause. Su licencia se conserva en
 [`public/licenses/react-bits.txt`](public/licenses/react-bits.txt), también incluida
 en la copia de demostración HTML. La adaptación incorpora dos colores, un ciclo
-periódico, renderizado por fotogramas y una alternativa Canvas 2D.
+periódico, renderizado por fotogramas y una alternativa Canvas 2D. Las
+animaciones de texto comparten su renderer Canvas 2D entre vista previa y GIF.
 
 ## Licencia
 
