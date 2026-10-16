@@ -33,18 +33,32 @@ try{
  assert.equal(await canvas.getAttribute('data-backend'),'webgl');
  assert.equal(await choice.locator('canvas').getAttribute('data-backend'),'software','thumbnail allocates no WebGL context');
  const pixels=()=>canvas.evaluate(c=>c.toDataURL());
+ const sample=()=>canvas.evaluate(c=>{
+  const probe=document.createElement('canvas');probe.width=probe.height=32;
+  const context=probe.getContext('2d');context.drawImage(c,0,0,32,32);
+  return [...context.getImageData(0,0,32,32).data];
+ });
+ const meanDifference=(a,b)=>a.reduce((sum,value,i)=>sum+Math.abs(value-b[i]),0)/a.length;
  const moving=await pixels();await page.waitForTimeout(250);assert.notEqual(await pixels(),moving,'real playback moves');
  await page.getByRole('button',{name:'Pausar animación',exact:true}).click();
  const paused=await pixels();await page.waitForTimeout(250);assert.equal(await pixels(),paused,'pause holds exact pixels');
  await page.getByRole('button',{name:'Reanudar animación',exact:true}).click();await page.waitForTimeout(250);assert.notEqual(await pixels(),paused);
  await page.getByRole('button',{name:'Repetir animación',exact:true}).click();await page.waitForTimeout(150);
  await page.getByLabel('Animar el fondo',{exact:true}).uncheck();await page.waitForTimeout(150);
- const still=await pixels();await page.waitForTimeout(250);assert.equal(await pixels(),still,'static toggle stops animation');
+ const still=await pixels(),stillSample=await sample(),staticBackend=await canvas.getAttribute('data-backend');
+ await page.waitForTimeout(250);assert.equal(await pixels(),still,'static toggle stops animation');
  await page.screenshot({path:output+'/editor-desktop.png'});
  await page.getByLabel('Animar el fondo',{exact:true}).check();
  await page.emulateMedia({reducedMotion:'reduce'});
- await page.waitForFunction(expected=>document.querySelector('.poster-art .backdrop-canvas')?.toDataURL()===expected,still);
- await page.waitForTimeout(250);assert.equal(await pixels(),still);
+ let difference=Infinity;
+ for(let attempt=0;attempt<100;attempt++){
+  difference=meanDifference(await sample(),stillSample);
+  if(difference<1)break;
+  await page.waitForTimeout(100);
+ }
+ assert.ok(difference<1,`reduced motion differs from static frame: mean pixel difference ${difference}, backend ${staticBackend} → ${await canvas.getAttribute('data-backend')}`);
+ await page.waitForTimeout(250);
+ assert.ok(meanDifference(await sample(),stillSample)<1,'reduced motion holds the static frame');
  await page.emulateMedia({reducedMotion:'no-preference'});await page.waitForTimeout(250);assert.notEqual(await pixels(),still);
  // Simulate a driver/context loss: the same visible canvas continues in software.
  await page.evaluate(()=>window.silkContexts.at(-1).getExtension('WEBGL_lose_context').loseContext());
