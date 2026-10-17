@@ -65,6 +65,17 @@ Este proyecto se publica en **https://gonzalo123.github.io/gzaas2/** con cada pu
 
 ## Compartir
 
+Los enlaces dañados y las rutas inexistentes muestran un **404 en forma de Gzaas!**:
+«Este mensaje se ha ido de fiesta», con el motivo del error y dos salidas:
+**Crear un mensaje**, que vuelve al inicio y enfoca el campo de texto, y
+**Tunear este 404**, que convierte el cartel de error en un mensaje editable y compartible.
+La dirección rota se conserva hasta elegir una salida. La entrada se reproduce una vez y respeta movimiento reducido e idioma.
+
+El build genera `404.html` para GitHub Pages, con los mismos recursos que la app y `noindex`.
+Su base de recursos se obtiene de la ruta de `og:url` en `index.html`, por lo que también funciona en rutas anidadas como `/gzaas2/no/existe`.
+Si cambias dónde se publica el proyecto, actualiza esa URL. `npm run test:not-found`
+prueba el build con respuestas HTTP 404 reales, enlaces dañados, recuperación, móvil e idiomas.
+
 Los enlaces nuevos usan `#v2=...`: opciones empaquetadas en bits, colores RGB y texto UTF-8. El texto repetitivo se comprime cuando ocupa menos. Todo el mensaje y el diseño están en el fragmento; `#v1=...` sigue siendo compatible. Al abrir un enlace `v1`, la barra de direcciones se actualiza a `v2` sin recargar ni cambiar el cartel. Como referencia, el estado inicial pasa de 443 a 59 caracteres de fragmento.
 
 «Compartir» da prioridad a **Compartir animación** cuando el mensaje o el fondo tienen movimiento. Prepara el GIF en el navegador, con progreso y cancelación, y permite enviarlo con su enlace mediante el menú nativo del dispositivo. Una vez preparado, un segundo toque abre ese menú para conservar la activación del usuario que exige el navegador. Si no admite compartir GIF, ofrece la descarga y copiar el enlace. Cerrar el diálogo cancela la exportación y libera sus recursos; con movimiento reducido, la miniatura permanece estática.

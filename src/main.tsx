@@ -23,6 +23,7 @@ import{DEFAULT,PRESETS,MAX_TEXT,encodeState,decodeState,validateState}from'./sta
 import{paint,waitFonts,type Poster}from'./render';
 import{PosterStage}from'./PosterStage';
 import {Landing} from './Landing';
+import {NotFound} from './NotFound';
 import {useRoulette} from './useRoulette';
 import {randomStyle} from './roulette.mjs';
 import{EditorPanel,type EditorTab}from'./EditorPanel';
@@ -36,6 +37,7 @@ import './export.css';
 import './share.css';
 import './landing.css';
 import './language.css';
+import './not-found.css';
 import './stage.css';
 function OriginalCredit(){
  const {t}=useI18n();return <div className="origin-credit">{t("Inspirado en")} <a href="https://github.com/ojoven/gzaas" target="_blank" rel="noreferrer">Gzaas!</a>{t(", de")} <a href="https://github.com/ojoven" target="_blank" rel="noreferrer">ojoven</a>.</div>}
@@ -44,15 +46,19 @@ function upgradeLegacyHash(hash:string,state:Poster){
  if(!hash.startsWith('#v1=')&&!hash.startsWith('#edit:v1='))return;
  try{history.replaceState(history.state,'',location.pathname+location.search+encodeState(state).replace('#',hash.startsWith('#edit:')?'#edit:':'#'));}catch{}
 }
-function initial(){try{if(!location.hash)return{state:DEFAULT,view:false,error:''};const hash=location.hash,state=decodeState(hash.replace('#edit:','#'));upgradeLegacyHash(hash,state);return{state,view:!hash.startsWith('#edit:'),error:''};}catch(e){return {state:DEFAULT,view:false,error:(e as Error).message};}}
+// Source lives in src/ during development and assets/ after build; both have the site root as parent.
+const homePath=location.protocol==='file:'?location.pathname:new URL(/* @vite-ignore */ '../',import.meta.url).pathname;
+function missingPage(){return document.documentElement.hasAttribute('data-gzaas-not-found')||![homePath,homePath+'index.html'].includes(location.pathname);}
+function initial(){try{if(missingPage())return{state:DEFAULT,view:false,notFound:true,error:'Esta página no existe. Puede que el enlace esté incompleto.'};if(!location.hash)return{state:DEFAULT,view:false,notFound:false,error:''};const hash=location.hash,state=decodeState(hash.replace('#edit:','#'));upgradeLegacyHash(hash,state);return{state,view:!hash.startsWith('#edit:'),notFound:false,error:''};}catch(e){return {state:DEFAULT,view:false,notFound:true,error:(e as Error).message};}}
 const boot=initial();
 function App(){
  const {t,locale}=useI18n();
+ const[notFound,setNotFound]=useState(boot.notFound);
  useLayoutEffect(()=>{
   document.documentElement.lang=locale;
-  document.title=t('gzaas! — Dilo a lo grande.');
+  document.title=notFound?t('404 · Mensaje no encontrado — gzaas!'):t('gzaas! — Dilo a lo grande.');
   document.querySelector('meta[name="description"]')?.setAttribute('content',t('Escribe algo. Dale personalidad. Compártelo a lo grande. Mensajes que viven en su enlace.'));
- },[locale,t]);
+ },[locale,t,notFound]);
  const[state,setState]=useState<Poster>(boot.state),[view,setView]=useState(boot.view),[error,setError]=useState(boot.error),[toast,setToast]=useState(''),[shareOpen,setShareOpen]=useState(false),[shareUrl,setShareUrl]=useState(''),[busy,setBusy]=useState(false),[ratio,setRatio]=useState('landscape');
  const[paused,setPaused]=useState(false),[replay,setReplay]=useState(0),[controlsVisible,setControlsVisible]=useState(false),[closing,setClosing]=useState(false);
  const[landing,setLanding]=useState(!location.hash||!!boot.error),[draft,setDraft]=useState('');
@@ -65,7 +71,7 @@ function App(){
  function patch(p:Partial<Poster>){setState(prev=>({...prev,...p}));setPaused(false);}
  function restart(){setReplay(n=>n+1);setPaused(false);}
  function getUrl(){return location.href.split('#')[0]+encodeState(state);}
- useEffect(()=>{const onHash=()=>{clearTimeout(exitTimer.current);roulette.cancel();setFlash(null);setClosing(false);setShareOpen(false);setExportOpen(false);setPaused(false);try{if(location.hash){const hash=location.hash,next=decodeState(hash.replace('#edit:','#'));setState(next);setView(!hash.startsWith('#edit:'));setLanding(false);upgradeLegacyHash(hash,next);}else{setView(false);setLanding(true);setDraft('');}setError('');}catch(e){setError((e as Error).message);setView(false);setLanding(true);}};addEventListener('hashchange',onHash);return()=>removeEventListener('hashchange',onHash);},[]);
+ useEffect(()=>{const onHash=()=>{clearTimeout(exitTimer.current);roulette.cancel();setFlash(null);setClosing(false);setShareOpen(false);setExportOpen(false);setPaused(false);try{if(missingPage())throw Error('Esta página no existe. Puede que el enlace esté incompleto.');if(location.hash){const hash=location.hash,next=decodeState(hash.replace('#edit:','#'));setState(next);setView(!hash.startsWith('#edit:'));setLanding(false);upgradeLegacyHash(hash,next);}else{setView(false);setLanding(true);setDraft('');}setNotFound(false);setError('');}catch(e){setError((e as Error).message);setView(false);setLanding(true);setNotFound(true);}};addEventListener('hashchange',onHash);return()=>removeEventListener('hashchange',onHash);},[]);
  useEffect(()=>{const esc=(e:KeyboardEvent)=>{if(e.key==='Escape'&&!shareOpen&&!exportOpen)edit();};addEventListener('keydown',esc);return()=>removeEventListener('keydown',esc);},[view,shareOpen,exportOpen]);
  useLayoutEffect(()=>{
   if(!view)return;
@@ -82,7 +88,7 @@ function App(){
   const ctx=(document as Document&{modelContext?:{registerTool:(t:unknown,o:unknown)=>Promise<void>|void}}).modelContext;if(!ctx)return;
   const life=new AbortController();try{Promise.resolve(ctx.registerTool({name:'configure_gzaas_message',description:'Set the message text in the visible Gzaas editor. Does not publish or share.',inputSchema:{type:'object',properties:{text:{type:'string',minLength:1,maxLength:280}},required:['text'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:true},execute:(input:unknown)=>{const text=(input as {text?:unknown})?.text;if(typeof text!=='string')throw Error('text must be a string');const next=validateState({...stateRef.current,text});flushSync(()=>{setState(next);setView(false);setLanding(false);});return{configured:true,text:next.text};}},{signal:life.signal})).catch(()=>{});}catch{}return()=>life.abort();
  },[]);
- useEffect(()=>{if(landing||view||error)return;const timer=setTimeout(()=>{try{history.replaceState(null,'',location.pathname+location.search+encodeState(state).replace('#','#edit:'));}catch{}},200);return()=>clearTimeout(timer);},[state,landing,view,error]);
+ useEffect(()=>{if(notFound||landing||view||error)return;const timer=setTimeout(()=>{try{history.replaceState(null,'',location.pathname+location.search+encodeState(state).replace('#','#edit:'));}catch{}},200);return()=>clearTimeout(timer);},[state,landing,view,error,notFound]);
  const invalid=!state.text.trim()||[...state.text].length>MAX_TEXT||state.text.split('\n').length>12;
  const hasMotion=state.animation!=='none'||state.backdropMotion&&state.backdrop!=='solid';
  async function share(){try{const url=getUrl();setShareUrl(url);setShareOpen(true);}catch(e){setError((e as Error).message);}}
@@ -108,6 +114,14 @@ function App(){
    roulette.spin(idx,(i,final)=>setFlash(final?next:{...DEFAULT,...styleOf(i),animation:'none',backdropMotion:false}),enter);
   }catch(e){setError((e as Error).message);}
  }
+ function recover(poster?:Poster){
+  document.documentElement.removeAttribute('data-gzaas-not-found');
+  history.replaceState(null,'',homePath+(poster?encodeState(poster).replace('#','#edit:'):''));
+  setNotFound(false);setError('');setView(false);setLanding(!poster);setDraft('');setEditorTab('message');setTrayOpen(true);
+  if(poster)setState(poster);
+  requestAnimationFrame(()=>document.getElementById(poster?'message':'landing-message')?.focus());
+ }
+ if(notFound)return <><NotFound reason={error} home={homePath} onHome={()=>recover()} onRemix={recover}/><OriginalCredit/></>;
  const stage=!landing&&!view?{'--poster-bg':state.bg,'--poster-fg':state.fg,'--poster-accent':state.accent} as React.CSSProperties:undefined;
  return <div style={stage} className={landing?'app landing':view?`app viewer${controlsVisible?' controls-visible':''}${closing?' viewer-closing':''}`:'app edit-app'}>
  {(landing||view)&&<LanguageSelector className={landing?'landing-language':'viewer-language'}/>}

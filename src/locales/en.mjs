@@ -1,5 +1,13 @@
 // Spanish source messages are stable keys. Values may contain {named} parameters.
 export default {
+ 'ESTE MENSAJE\nSE HA IDO\nDE FIESTA.':'THIS MESSAGE\nWENT OUT\nTO PARTY.',
+ '404 · Mensaje no encontrado':'404 · Message not found',
+ '404 · Este mensaje se ha ido de fiesta.':'404 · This message went out to party.',
+ '404 · Mensaje no encontrado — gzaas!':'404 · Message not found — gzaas!',
+ 'Esta página no existe. Puede que el enlace esté incompleto.':'This page does not exist. The link may be incomplete.',
+ 'Pide que te reenvíen el enlace. O empieza una fiesta nueva.':'Ask for the link again. Or start a new party.',
+ 'Crear un mensaje':'Create a message',
+ 'Tunear este 404':'Remix this 404',
  "React Bits III":"React Bits III",
  "Destello":"Shine",
  "Shiny Text · Un reflejo de luz recorre las letras.":"Shiny Text · A sweep of light crosses the letters.",

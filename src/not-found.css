@@ -1,0 +1,18 @@
+.not-found{min-height:100svh;background:#fff9ef;color:#4a174c;display:flex;flex-direction:column;padding:20px 32px 76px}
+.not-found-header{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:1440px;margin:0 auto}
+.not-found-logo{font-size:36px;font-style:italic;font-weight:800;letter-spacing:-2px;text-decoration:none;color:#e85d0a}
+.not-found-header .language-selector{color:#4a174c}
+.not-found-content{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;max-width:1120px;width:100%;padding:16px 0 0;text-align:center}
+.not-found-code{display:inline-block;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 14px;border:1px solid #4a174c33;border-radius:99px;padding:8px 14px}
+.not-found-art{width:100%;height:clamp(240px,48svh,500px);min-height:0;overflow:hidden;border-radius:20px;box-shadow:0 8px 0 #4a174c}
+.not-found-art .kinetic-poster{width:100%;height:100%}
+.not-found-recovery{margin-top:28px;max-width:600px}
+.not-found-reason{font-size:15px;font-weight:700;line-height:1.4;margin:0}
+.not-found-copy{font-size:14px;line-height:1.5;color:#6c596a;margin:6px 0 18px}
+.not-found-actions{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px 24px}
+.not-found-actions .primary{background:#4a174c;border-color:#4a174c;color:#fff9ef;padding-inline:26px}
+.not-found-actions .primary:hover{background:#6a286c}
+.not-found-actions .text-button{color:#4a174c;min-height:44px;font-size:13px}
+.not-found~.origin-credit,.not-found>.origin-credit{color:#6c596a}
+@media(max-width:600px){.not-found{padding:14px 16px 70px}.not-found-logo{font-size:31px}.not-found-content{padding-top:24px}.not-found-art{height:clamp(220px,38svh,340px);border-radius:14px}.not-found-code{font-size:10px;letter-spacing:1px}.not-found-recovery{margin-top:24px}.not-found-reason{font-size:14px}.not-found-copy{font-size:13px;margin-bottom:14px}.not-found-actions{gap:4px 20px}}
+@media(max-height:500px) and (min-width:601px){.not-found{padding:10px 24px 50px}.not-found-logo{font-size:28px}.not-found-content{display:grid;grid-template-columns:1.1fr 1fr;gap:8px 28px;padding-top:4px;align-content:center}.not-found-code{grid-column:1/-1;justify-self:center;margin:0;font-size:10px;padding:5px 12px}.not-found-art{height:clamp(140px,48svh,210px)}.not-found-recovery{margin:0}.not-found-copy{font-size:12px}.not-found-reason{font-size:13px}.not-found-actions{gap:4px}}
