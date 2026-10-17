@@ -89,7 +89,7 @@ try{
  assert.ok(await mobile.locator('.editor-tabs button').evaluateAll(buttons=>buttons.every(b=>b.scrollWidth<=b.clientWidth)),'tab labels fit');
  await mobile.getByRole('button',{name:'Compartir',exact:true}).click();await mobile.getByRole('button',{name:'Mostrar código QR'}).click();
  const mobileQr=mobile.getByRole('img',{name:'Código QR del enlace a tu mensaje'});await mobileQr.waitFor();
- assert.ok(await mobileQr.evaluate(node=>{const box=node.getBoundingClientRect();return box.width>=180&&box.left>=0&&box.right<=innerWidth;}),'QR stays large and inside the mobile viewport');
+ assert.ok(await mobileQr.evaluate(node=>{const box=node.getBoundingClientRect();return box.width>=180&&Math.abs(box.width-box.height)<1&&box.left>=0&&box.right<=innerWidth;}),'QR stays square, large and inside the mobile viewport');
  await mobile.screenshot({path:output+'/mobile-qr-es.png'});await mobile.close();
  // A shared message opens unchanged in a different recipient's UI language.
  const recipient=await browser.newPage({locale:'en-US',reducedMotion:'reduce'});
