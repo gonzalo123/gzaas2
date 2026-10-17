@@ -7,7 +7,7 @@ import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 import {DEFAULT,encodeState,decodeState} from '../src/state.mjs';
 
-const dist=fileURLToPath(new URL('../dist/',import.meta.url));
+const dist=resolve(fileURLToPath(new URL('../dist/',import.meta.url)));
 const page404=await readFile(resolve(dist,'404.html'),'utf8');
 const mount=page404.match(/<base href="([^"]+)"/)[1];
 const output=process.env.TEST_ARTIFACTS||'/tmp/gzaas-not-found-check';
@@ -41,13 +41,13 @@ try{
   assert.equal(new URL(page.url()).hash,hash);
   assert.equal(await page.locator('.landing,.edit-app,.viewer').count(),0);
   assert.ok(await page.getByRole('button',{name:'Crear un mensaje',exact:true}).isVisible());
-  assert.equal(await page.locator('h1').evaluate(node=>node===document.activeElement),true,'the error heading receives focus');
+  await page.waitForFunction(()=>document.querySelector('h1')===document.activeElement);
  }
  assert.ok(await page.locator('.not-found-art .motion-unit').evaluateAll(nodes=>nodes.length>0&&nodes.every(node=>getComputedStyle(node).animationName==='none')),'reduced motion shows the formed poster');
  await page.screenshot({path:output+'/broken-link-desktop.png'});
  await page.getByRole('button',{name:'Crear un mensaje',exact:true}).click();await page.locator('.landing').waitFor();
  assert.equal(page.url(),base);assert.ok(!(await page.title()).startsWith('404'));
- assert.equal(await page.locator('#landing-message').evaluate(node=>node===document.activeElement),true);
+ await page.waitForFunction(()=>document.querySelector('#landing-message')===document.activeElement);
  // Hash changes within the same loaded app recover correctly in both directions.
  await page.evaluate(hash=>{location.hash=hash;},'#broken');await page.locator('.not-found').waitFor();
  await page.evaluate(hash=>{location.hash=hash;},valid);await page.locator('.viewer').waitFor();

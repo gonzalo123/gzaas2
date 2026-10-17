@@ -56,7 +56,13 @@ try{
   await page.getByRole('button',{name:'Pausar animación',exact:true}).click();await page.waitForTimeout(50);const paused=await snapshot();await page.waitForTimeout(200);assert.ok(await snapshot()===paused,`${id}: paused pixels stay frozen`);
   if(id==='iridescence')assert.equal(await page.locator('.backdrop-pointer-glow').evaluate(e=>e.style.opacity),'0','pause disables pointer response');
   await page.screenshot({path:`${output}/${id}-desktop.png`});
-  await page.getByLabel('Animar el fondo',{exact:true}).uncheck();await page.waitForTimeout(100);
+  // Changing motion replaces the renderer asynchronously. Wait for that replacement,
+  // rather than sampling the previous animated canvas after a fixed 100 ms delay.
+  const movingCanvas=await canvas.elementHandle();
+  await page.getByLabel('Animar el fondo',{exact:true}).uncheck();
+  await page.waitForFunction(previous=>!previous.isConnected,movingCanvas);
+  await movingCanvas.dispose();
+  await page.waitForSelector(`.poster-art .backdrop-canvas[data-backdrop="${id}"][data-backend]`);
   const still=await sample(),staticBackend=await canvas.getAttribute('data-backend');
   await page.getByLabel('Animar el fondo',{exact:true}).check();await page.emulateMedia({reducedMotion:'reduce'});
   let difference=Infinity;
