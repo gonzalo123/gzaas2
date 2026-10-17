@@ -29,6 +29,7 @@ jobs:
       - run: npm run test:backgrounds
       - run: npm run test:landing
       - run: npm run test:i18n
+      - run: npm run test:share
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

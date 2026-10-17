@@ -13,6 +13,7 @@
     "test:backgrounds": "node scripts/check-backgrounds.mjs",
     "test:landing": "node scripts/check-landing.mjs",
     "test:i18n": "node scripts/check-i18n.mjs",
+    "test:share": "node scripts/check-share.mjs",
     "test:text": "node scripts/check-text.mjs"
   },
   "dependencies": {

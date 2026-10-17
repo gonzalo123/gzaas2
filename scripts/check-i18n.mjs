@@ -52,6 +52,7 @@ try{
  await page.getByRole('button',{name:'PNG An image to keep.'}).click();
  const downloaded=page.waitForEvent('download');await page.getByRole('button',{name:'Download PNG',exact:true}).click();assert.equal((await downloaded).suggestedFilename(),'gzaas.png');
  await page.getByRole('button',{name:'Share',exact:true}).click();await page.getByRole('heading',{name:'Take your message out there.'}).waitFor();
+ await page.getByRole('button',{name:'Share animation',exact:true}).waitFor();
  await page.locator('.share-preview img').waitFor();assert.equal(await page.locator('.share-preview img').getAttribute('alt'),message);await page.screenshot({path:output+'/share-en.png'});
  await page.getByRole('button',{name:'Show QR code',exact:true}).click();
  const qr=page.getByRole('img',{name:'QR code for your message link'});await qr.waitFor();

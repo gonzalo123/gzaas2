@@ -1,6 +1,5 @@
 import {useI18n} from './useI18n';
 import {useEffect,useRef,useState} from 'react';
-import {exportGif} from './export-gif';
 import type {Poster} from './render';
 import {exportDimensions,exportPlan} from './export-plan.mjs';
 import {canShareFile,fileShareData,publicShareUrl} from './share-file.mjs';
@@ -22,6 +21,7 @@ export function ExportDialog({state,ratio,shareUrl,onPNG,onClose}:{state:Poster;
   if(format==='png'){setBusy(true);await onPNG();onClose();return;}
   const controller=new AbortController();job.current=controller;setBusy(true);setProgress(0);setError('');
   try{
+   const {exportGif}=await import('./export-gif');controller.signal.throwIfAborted();
    const gif=await exportGif(state,ratio,controller.signal,setProgress);
    if(controller.signal.aborted)return;
    const url=URL.createObjectURL(gif.blob);objectUrl.current=url;
