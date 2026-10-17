@@ -29,10 +29,11 @@ try{
  await page.reload();assert.equal(await page.locator('html').getAttribute('lang'),'es');
  await page.getByRole('combobox',{name:'Idioma',exact:true}).selectOption('en');
  await page.getByRole('textbox',{name:'Your message',exact:true}).fill(message);
- await page.getByRole('button',{name:'gzaas it!',exact:true}).click();await page.locator('.edit-app').waitFor();await page.waitForTimeout(250);
+ await page.getByRole('button',{name:'gzaas it!',exact:true}).click();await page.locator('.viewer').waitFor();await page.waitForTimeout(250);
  const hash=new URL(page.url()).hash;
  await page.getByRole('combobox',{name:'Language',exact:true}).selectOption('es');await page.waitForTimeout(250);
  assert.equal(new URL(page.url()).hash,hash,'language is never serialized into the poster');
+ await page.mouse.move(100,100);await page.getByRole('button',{name:'Crear mi versión',exact:true}).click();await page.locator('.edit-app').waitFor();
  assert.equal(await page.locator('#message').inputValue(),message);
  await page.getByRole('combobox',{name:'Idioma',exact:true}).selectOption('en');
  for(const tab of ['Text','Styles','Design','Backgrounds','Motion']){
@@ -68,7 +69,10 @@ try{
  // On mobile, the selector and translated controls must fit the editor header.
  const mobile=await browser.newPage({locale:'en-US',viewport:{width:320,height:640},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
  await mobile.goto(base);await mobile.screenshot({path:output+'/mobile-landing-en.png'});
- await mobile.getByRole('textbox',{name:'Your message',exact:true}).fill('Make it big');await mobile.getByRole('button',{name:'gzaas it!'}).click();await mobile.locator('.edit-app').waitFor();
+ await mobile.getByRole('textbox',{name:'Your message',exact:true}).fill('Make it big');await mobile.getByRole('button',{name:'gzaas it!'}).click();await mobile.locator('.viewer').waitFor();
+ await mobile.waitForTimeout(3200);
+ assert.equal(await mobile.locator('.viewer-bar').evaluate(node=>getComputedStyle(node).opacity),'1','touch users can always discover the edit action');
+ await mobile.getByRole('button',{name:'Make my version',exact:true}).click();await mobile.locator('.edit-app').waitFor();
  assert.ok(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  assert.ok(await mobile.locator('.topbar .share-button').evaluate(e=>e.getBoundingClientRect().right<=innerWidth),'share stays inside the mobile header');
  assert.ok(await mobile.locator('.editor-tabs button').evaluateAll(buttons=>buttons.every(b=>b.scrollWidth<=b.clientWidth)),'tab labels fit');

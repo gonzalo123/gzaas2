@@ -66,10 +66,22 @@ try{
   await page.screenshot({path:`${output}/fixed-mobile-${index}.png`});
   await page.setViewportSize({width:976,height:571});await page.screenshot({path:`${output}/fixed-desktop-${index}.png`});
   await page.getByRole('textbox',{name:'Tu mensaje',exact:true}).press('Enter');
-  try{await page.locator('.edit-app').waitFor();}catch(error){
+  try{await page.locator('.viewer').waitFor();}catch(error){
    await page.screenshot({path:`${output}/failed-submit-${index}.png`});
    console.log({index,errors,landingError:await page.locator('#landing-error').allTextContents()});throw error;
   }
+  assert.ok(new URL(page.url()).hash.startsWith('#v1='),'the generated poster has a viewer link');
+  if(index===0){
+   assert.equal(await page.locator('.viewer').evaluate(node=>node.classList.contains('controls-visible')),true,'actions are introduced on arrival');
+   await page.waitForTimeout(3200);
+   assert.equal(await page.locator('.edit-app').count(),0,'the poster stays open until the user chooses to edit');
+   assert.equal(await page.locator('.viewer').evaluate(node=>node.classList.contains('controls-visible')),false,'desktop actions fade away');
+   await page.mouse.move(100,100);
+   assert.equal(await page.locator('.viewer').evaluate(node=>node.classList.contains('controls-visible')),true,'moving the pointer restores actions');
+   await page.reload();await page.locator('.viewer').waitFor();
+  }
+  await page.getByRole('button',{name:'Crear mi versión',exact:true}).click();await page.locator('.edit-app').waitFor();
+  assert.equal(await page.locator('#message').inputValue(),'Otra frase','editing keeps the generated text');
   await page.close();
  }
  const reduced=await browser.newPage({locale:'es-ES',reducedMotion:'reduce'});
@@ -135,8 +147,8 @@ try{
   await reduced.goto(base);await installRandom(reduced);
   await reduced.getByRole('textbox',{name:'Tu mensaje',exact:true}).fill('Un fondo de '+collection.name);
   await draws(reduced,[.3,(BACKDROPS.findIndex(b=>b.id===id)+.5)/BACKDROPS.length,.7]);
-  await reduced.getByRole('textbox',{name:'Tu mensaje',exact:true}).press('Enter');await reduced.locator('.edit-app').waitFor();
-  await reduced.waitForURL(u=>u.hash.startsWith('#edit:')&&decodeState(u.hash.replace('#edit:','#')).backdrop===id);
+  await reduced.getByRole('textbox',{name:'Tu mensaje',exact:true}).press('Enter');await reduced.locator('.viewer').waitFor();
+  await reduced.waitForURL(u=>u.hash.startsWith('#v1=')&&decodeState(u.hash).backdrop===id);
   assert.equal(current(reduced).text,'Un fondo de '+collection.name);
  }
  // Exercise every catalog entry through the real buttons, including particles,
@@ -158,8 +170,9 @@ try{
   const message='Desde el inicio: '+animation.name;
   await reduced.getByRole('textbox',{name:'Tu mensaje',exact:true}).fill(message);
   await draws(reduced,[.3,.5/BACKDROPS.length,(i+.5)/ANIMATIONS.length]);
-  await reduced.getByRole('textbox',{name:'Tu mensaje',exact:true}).press('Enter');await reduced.locator('.edit-app').waitFor();
-  await reduced.waitForURL(u=>u.hash.startsWith('#edit:')&&decodeState(u.hash.replace('#edit:','#')).animation===animation.id);
+  await reduced.getByRole('textbox',{name:'Tu mensaje',exact:true}).press('Enter');await reduced.locator('.viewer').waitFor();
+  await reduced.waitForURL(u=>u.hash.startsWith('#v1=')&&decodeState(u.hash).animation===animation.id);
+  await reduced.getByRole('button',{name:'Crear mi versión',exact:true}).click();await reduced.locator('.edit-app').waitFor();
   assert.equal(current(reduced).text,message);assert.equal(current(reduced).backdrop,'solid');
  }
  // The welcome logo randomly chooses one quiet entrance, then stays still.

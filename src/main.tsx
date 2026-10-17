@@ -54,14 +54,14 @@ function App(){
  const[landing,setLanding]=useState(!location.hash||!!boot.error),[draft,setDraft]=useState('');
  const[editorTab,setEditorTab]=useState<EditorTab>('message'),[trayOpen,setTrayOpen]=useState(true);
  const[exportOpen,setExportOpen]=useState(false),[flash,setFlash]=useState<Partial<Poster>|null>(null);
- const roulette=useRoulette(),holdTimer=useRef<ReturnType<typeof setTimeout>>(undefined);
+ const roulette=useRoulette();
  const stateRef=useRef(state);stateRef.current=state;
  const toastTimer=useRef<ReturnType<typeof setTimeout>>(undefined),exitTimer=useRef<ReturnType<typeof setTimeout>>(undefined);
  function notify(s:string){setToast(s);clearTimeout(toastTimer.current);toastTimer.current=setTimeout(()=>setToast(''),3000);}
  function patch(p:Partial<Poster>){setState(prev=>({...prev,...p}));setPaused(false);}
  function restart(){setReplay(n=>n+1);setPaused(false);}
  function getUrl(){return location.href.split('#')[0]+encodeState(state);}
- useEffect(()=>{const onHash=()=>{clearTimeout(exitTimer.current);clearTimeout(holdTimer.current);roulette.cancel();setFlash(null);setClosing(false);setShareOpen(false);setExportOpen(false);setPaused(false);try{if(location.hash){setState(decodeState(location.hash.replace('#edit:','#')));setView(!location.hash.startsWith('#edit:'));setLanding(false);}else{setView(false);setLanding(true);setDraft('');}setError('');}catch(e){setError((e as Error).message);setView(false);setLanding(true);}};addEventListener('hashchange',onHash);return()=>removeEventListener('hashchange',onHash);},[]);
+ useEffect(()=>{const onHash=()=>{clearTimeout(exitTimer.current);roulette.cancel();setFlash(null);setClosing(false);setShareOpen(false);setExportOpen(false);setPaused(false);try{if(location.hash){setState(decodeState(location.hash.replace('#edit:','#')));setView(!location.hash.startsWith('#edit:'));setLanding(false);}else{setView(false);setLanding(true);setDraft('');}setError('');}catch(e){setError((e as Error).message);setView(false);setLanding(true);}};addEventListener('hashchange',onHash);return()=>removeEventListener('hashchange',onHash);},[]);
  useEffect(()=>{const esc=(e:KeyboardEvent)=>{if(e.key==='Escape'&&!shareOpen&&!exportOpen)edit();};addEventListener('keydown',esc);return()=>removeEventListener('keydown',esc);},[view,shareOpen,exportOpen]);
  useLayoutEffect(()=>{
   if(!view)return;
@@ -70,10 +70,10 @@ function App(){
   const move=(e:PointerEvent)=>{if(e.pointerType!=='touch')reveal();};
   const touch=(e:PointerEvent)=>{if(e.pointerType!=='mouse')reveal();};
   const hide=()=>{clearTimeout(timer);setControlsVisible(false);};
-  hide();addEventListener('pointermove',move);addEventListener('pointerdown',touch);addEventListener('keydown',reveal);document.addEventListener('fullscreenchange',hide);
+  reveal();addEventListener('pointermove',move);addEventListener('pointerdown',touch);addEventListener('keydown',reveal);document.addEventListener('fullscreenchange',hide);
   return()=>{clearTimeout(timer);removeEventListener('pointermove',move);removeEventListener('pointerdown',touch);removeEventListener('keydown',reveal);document.removeEventListener('fullscreenchange',hide);};
  },[view]);
- useEffect(()=>()=>{clearTimeout(toastTimer.current);clearTimeout(exitTimer.current);clearTimeout(holdTimer.current);},[]);
+ useEffect(()=>()=>{clearTimeout(toastTimer.current);clearTimeout(exitTimer.current);},[]);
  useEffect(()=>{
   const ctx=(document as Document&{modelContext?:{registerTool:(t:unknown,o:unknown)=>Promise<void>|void}}).modelContext;if(!ctx)return;
   const life=new AbortController();try{Promise.resolve(ctx.registerTool({name:'configure_gzaas_message',description:'Set the message text in the visible Gzaas editor. Does not publish or share.',inputSchema:{type:'object',properties:{text:{type:'string',minLength:1,maxLength:280}},required:['text'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:true},execute:(input:unknown)=>{const text=(input as {text?:unknown})?.text;if(typeof text!=='string')throw Error('text must be a string');const next=validateState({...stateRef.current,text});flushSync(()=>{setState(next);setView(false);setLanding(false);});return{configured:true,text:next.text};}},{signal:life.signal})).catch(()=>{});}catch{}return()=>life.abort();
@@ -97,15 +97,11 @@ function App(){
    const {index:idx,style}=randomStyle(undefined),styleOf=(i:number)=>{const{name,sample,...preset}=PRESETS[i];return preset;};
    const next=validateState({...DEFAULT,...style,text:draft});
    const enter=()=>{
-    const commit=()=>{flushSync(()=>{setState(next);setError('');setPaused(false);setView(false);setLanding(false);setFlash(null);});window.scrollTo(0,0);};
+    const commit=()=>{flushSync(()=>{setState(next);setError('');setPaused(false);setView(true);setLanding(false);setFlash(null);});history.replaceState(null,'',location.pathname+location.search+encodeState(next));window.scrollTo(0,0);};
     const transition=(document as Document&{startViewTransition?:(cb:()=>void)=>unknown}).startViewTransition;
     if(transition&&!matchMedia('(prefers-reduced-motion: reduce)').matches)transition.call(document,commit);else commit();
    };
-   roulette.spin(idx,(i,final)=>setFlash(final?next:{...DEFAULT,...styleOf(i),animation:'none',backdropMotion:false}),()=>{
-    notify(PRESETS[idx].name);
-    // Let the chosen style play for a beat before the poster flies into the editor.
-    holdTimer.current=setTimeout(enter,matchMedia('(prefers-reduced-motion: reduce)').matches?0:900);
-   });
+   roulette.spin(idx,(i,final)=>setFlash(final?next:{...DEFAULT,...styleOf(i),animation:'none',backdropMotion:false}),enter);
   }catch(e){setError((e as Error).message);}
  }
  const stage=!landing&&!view?{'--poster-bg':state.bg,'--poster-fg':state.fg,'--poster-accent':state.accent} as React.CSSProperties:undefined;
