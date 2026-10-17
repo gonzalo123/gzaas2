@@ -2,6 +2,7 @@ import {chromium} from 'playwright';
 import {spawn} from 'node:child_process';
 import {mkdir} from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import LZString from 'lz-string';
 import {DEFAULT,encodeState,decodeState} from '../src/state.mjs';
 const base=process.env.TEST_BASE_URL||'http://127.0.0.1:4177';
 const output=process.env.TEST_ARTIFACTS||'/tmp/gzaas-i18n-check';
@@ -52,6 +53,12 @@ try{
  const downloaded=page.waitForEvent('download');await page.getByRole('button',{name:'Download PNG',exact:true}).click();assert.equal((await downloaded).suggestedFilename(),'gzaas.png');
  await page.getByRole('button',{name:'Share',exact:true}).click();await page.getByRole('heading',{name:'Take your message out there.'}).waitFor();
  await page.locator('.share-preview img').waitFor();assert.equal(await page.locator('.share-preview img').getAttribute('alt'),message);await page.screenshot({path:output+'/share-en.png'});
+ await page.getByRole('button',{name:'Show QR code',exact:true}).click();
+ const qr=page.getByRole('img',{name:'QR code for your message link'});await qr.waitFor();
+ assert.match(await qr.getAttribute('src'),/^data:image\/png;base64,/);
+ assert.equal(await page.getByRole('button',{name:'Show poster'}).getAttribute('aria-pressed'),'true');
+ await page.getByRole('button',{name:'Show poster'}).click();
+ assert.equal(await page.locator('.share-preview img').getAttribute('alt'),message);
  await page.getByRole('button',{name:'Close sharing'}).click();
  await page.getByRole('button',{name:'View full screen',exact:true}).click();await page.mouse.move(100,100);
  await page.getByRole('combobox',{name:'Language',exact:true}).selectOption('es');
@@ -79,11 +86,21 @@ try{
  await mobile.getByRole('combobox',{name:'Language',exact:true}).selectOption('es');await mobile.screenshot({path:output+'/mobile-editor-es.png'});
  assert.ok(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  assert.ok(await mobile.locator('.topbar .share-button').evaluate(e=>e.getBoundingClientRect().right<=innerWidth),'share stays inside the mobile header');
- assert.ok(await mobile.locator('.editor-tabs button').evaluateAll(buttons=>buttons.every(b=>b.scrollWidth<=b.clientWidth)),'tab labels fit');await mobile.close();
+ assert.ok(await mobile.locator('.editor-tabs button').evaluateAll(buttons=>buttons.every(b=>b.scrollWidth<=b.clientWidth)),'tab labels fit');
+ await mobile.getByRole('button',{name:'Compartir',exact:true}).click();await mobile.getByRole('button',{name:'Mostrar código QR'}).click();
+ const mobileQr=mobile.getByRole('img',{name:'Código QR del enlace a tu mensaje'});await mobileQr.waitFor();
+ assert.ok(await mobileQr.evaluate(node=>{const box=node.getBoundingClientRect();return box.width>=180&&box.left>=0&&box.right<=innerWidth;}),'QR stays large and inside the mobile viewport');
+ await mobile.screenshot({path:output+'/mobile-qr-es.png'});await mobile.close();
  // A shared message opens unchanged in a different recipient's UI language.
  const recipient=await browser.newPage({locale:'en-US',reducedMotion:'reduce'});
  const shared={...DEFAULT,text:message,animation:'none'};await recipient.goto(base+'/'+encodeState(shared));
- assert.deepEqual(decodeState(new URL(recipient.url()).hash),shared);assert.equal(await recipient.locator('html').getAttribute('lang'),'en');await recipient.close();
+ assert.deepEqual(decodeState(new URL(recipient.url()).hash),shared);assert.equal(await recipient.locator('html').getAttribute('lang'),'en');
+ const legacy='#v1='+LZString.compressToEncodedURIComponent(JSON.stringify(shared));
+ await recipient.goto(base+'/'+legacy);await recipient.waitForURL(u=>u.hash.startsWith('#v2='));
+ assert.deepEqual(decodeState(new URL(recipient.url()).hash),shared,'opening v1 upgrades the address without changing the poster');
+ await recipient.evaluate(hash=>{location.hash=hash;},legacy.replace('#','#edit:'));
+ await recipient.waitForURL(u=>u.hash.startsWith('#edit:v2='));await recipient.locator('.edit-app').waitFor();
+ assert.equal(await recipient.locator('#message').inputValue(),message,'in-app v1 navigation upgrades editor links too');await recipient.close();
  // Switching locale mid-decode replaces its clock and keeps the draft.
  const animated=await browser.newPage({locale:'en-US',viewport:{width:390,height:844}});
  animated.on('pageerror',e=>errors.push(e.message));await animated.goto(base);
