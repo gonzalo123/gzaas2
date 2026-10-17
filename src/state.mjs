@@ -105,6 +105,66 @@ export const PRESETS = [
  {name:'Luz de mañana',sample:'TODO\nEMPIEZA.',font:'anton',fg:'#523933',bg:'#f7b392',accent:'#ffe6af',backdrop:'sunset',animation:'reveal'},
  {name:'Manifiesto',sample:'HAZLO\nTUYO.',font:'space',fg:'#fff7ed',bg:'#c94520',accent:'#f7aa47',backdrop:'waves',effect:'echo',animation:'cascade'},
 ].map(p=>({pattern:'none',effect:'none',backdrop:'solid',accent:'#8b5cf6',backdropMotion:true,...p}));
+// These code tables are part of the v2 link format. Keep their order stable;
+// new catalog choices need new codes or a new link version.
+const URL_FONTS_V2='bebas serif sans anton bungee shade monoton marker pacifico righteous space abril'.split(' ');
+const URL_BACKDROPS_V2='solid silk aurora mesh sunset rays stars checker waves iridescence threads color-bends plasma gradient-blinds light-rays balatro orb lightning dither dot-grid ripple-grid waves-lines pixel-snow floating-lines dark-veil grainient liquid-chrome prism light-pillar grid-scan pixel-blast galaxy'.split(' ');
+const URL_ANIMATIONS_V2='rb-shiny rb-gradient rb-flap rb-depth rb-tech rb-fuzzy rb-falling rb-rotate rb-type rb-decrypt rb-shuffle rb-glitch rb-focus rb-fold rb-echo rb-stroke particle-galaxy particle-assemble particle-explode particle-vortex trailer letters wave bounce orbit cascade impact blur fade reveal float none'.split(' ');
+const URL_PATTERNS_V2=['none','dots','grid','lines'];
+const URL_EFFECTS_V2=['none','shadow','outline','neon','echo'];
+const URL_ALIGNS_V2=['left','center','right'];
+const URL_PACES_V2=['slow','normal','fast'];
+const URL_GALAXY_QUALITIES_V2=['auto','low','high'];
+// Forty-three bits of options, nine bytes of RGB, optional color case and seed,
+// then UTF-8 text (or LZ-compressed text when that is shorter).
+const URL_FIELD_WIDTHS_V2=[4,2,3,2,6,5,2,1,5,1,2,1,1,1,1,2,1,1,1,1];
+const invalidCompactLink=()=>new Error('No se puede leer este enlace.');
+function urlCode(ids,value){const code=ids.indexOf(value);if(code<0)throw new Error('El diseño del enlace no es válido.');return code;}
+function packUrlFields(values){
+ if(values.length!==URL_FIELD_WIDTHS_V2.length)throw invalidCompactLink();
+ const bytes=new Uint8Array(6);let bit=0;
+ values.forEach((value,i)=>{const width=URL_FIELD_WIDTHS_V2[i];if(!Number.isInteger(value)||value<0||value>=2**width)throw invalidCompactLink();for(let n=width-1;n>=0;n--,bit++)bytes[bit>>3]|=((value>>n)&1)<<(7-(bit&7));});
+ return bytes;
+}
+function unpackUrlFields(bytes){
+ let bit=0;const values=URL_FIELD_WIDTHS_V2.map(width=>{let value=0;for(let n=0;n<width;n++,bit++)value=(value<<1)|((bytes[bit>>3]>>(7-(bit&7)))&1);return value;});
+ if(bytes[5]&31)throw invalidCompactLink();
+ return values;
+}
+function base64url(bytes){return btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function unbase64url(value){
+ try{if(value.length%4===1)throw invalidCompactLink();const bytes=Uint8Array.from(atob(value.replace(/-/g,'+').replace(/_/g,'/')),char=>char.charCodeAt(0));if(base64url(bytes)!==value)throw invalidCompactLink();return bytes;}
+ catch{throw invalidCompactLink();}
+}
+function encodeCompactState(s){
+ const raw=new TextEncoder().encode(s.text),compressed=LZString.compressToUint8Array(s.text);
+ const useCompression=compressed.length<raw.length||new TextDecoder().decode(raw)!==s.text;
+ const text=useCompression?compressed:raw,hasSeed=s.trailerSeed!==0;
+ const colorDigits=[s.fg,s.bg,s.accent].map(color=>color.slice(1)).join('');
+ const colorCase=new Uint8Array(3);for(let i=0;i<colorDigits.length;i++)if(/[A-F]/.test(colorDigits[i]))colorCase[i>>3]|=1<<(7-(i&7));
+ const hasColorCase=colorCase.some(Boolean);
+ const fields=packUrlFields([
+  urlCode(URL_FONTS_V2,s.font),urlCode(URL_PATTERNS_V2,s.pattern),urlCode(URL_EFFECTS_V2,s.effect),urlCode(URL_ALIGNS_V2,s.align),s.size-40,
+  urlCode(URL_ANIMATIONS_V2,s.animation),urlCode(URL_PACES_V2,s.pace),+s.repeat,urlCode(URL_BACKDROPS_V2,s.backdrop),+s.backdropMotion,
+  urlCode(URL_GALAXY_QUALITIES_V2,s.galaxyQuality),+s.galaxyCamera,+s.trailerGalaxy,+s.trailerMix,+s.trailerParticles,s.particleDensity-1,+s.particleInteraction,+useCompression,+hasSeed,+hasColorCase,
+ ]);
+ const bytes=new Uint8Array(15+(hasColorCase?3:0)+(hasSeed?4:0)+text.length);bytes.set(fields);
+ for(const [i,color] of [s.fg,s.bg,s.accent].entries())for(let n=0;n<3;n++)bytes[6+i*3+n]=parseInt(color.slice(1+n*2,3+n*2),16);
+ let offset=15;if(hasColorCase){bytes.set(colorCase,offset);offset+=3;}if(hasSeed){new DataView(bytes.buffer).setUint32(offset,s.trailerSeed);offset+=4;}bytes.set(text,offset);
+ return '#v2='+base64url(bytes);
+}
+function decodeCompactState(value){
+ const bytes=unbase64url(value);if(bytes.length<16||bytes.length>15+3+4+MAX_TEXT*4)throw invalidCompactLink();
+ const [font,pattern,effect,align,size,animation,pace,repeat,backdrop,backdropMotion,galaxyQuality,galaxyCamera,trailerGalaxy,trailerMix,trailerParticles,particleDensity,particleInteraction,compressed,hasSeed,hasColorCase]=unpackUrlFields(bytes);
+ const choice=(ids,index)=>{if(index>=ids.length)throw invalidCompactLink();return ids[index];};
+ let offset=15,colorCase;if(hasColorCase){if(bytes.length<offset+4)throw invalidCompactLink();colorCase=bytes.subarray(offset,offset+3);offset+=3;if(colorCase[2]&63||!colorCase.some(Boolean))throw invalidCompactLink();}
+ const color=index=>'#'+Array.from(bytes.subarray(6+index*3,9+index*3),byte=>byte.toString(16).padStart(2,'0')).join('').split('').map((digit,n)=>colorCase?.[(index*6+n)>>3]&(1<<(7-((index*6+n)&7)))?digit.toUpperCase():digit).join('');
+ let trailerSeed=0;if(hasSeed){if(bytes.length<offset+5)throw invalidCompactLink();trailerSeed=new DataView(bytes.buffer).getUint32(offset);offset+=4;if(trailerSeed===0)throw invalidCompactLink();}
+ const payload=bytes.subarray(offset);if(!payload.length||payload.length>MAX_TEXT*4)throw invalidCompactLink();
+ let text;try{text=compressed?LZString.decompressFromUint8Array(payload):new TextDecoder('utf-8',{fatal:true}).decode(payload);}catch{throw invalidCompactLink();}
+ if(text===null||text===undefined)throw invalidCompactLink();
+ return validateState({v:1,text,font:choice(URL_FONTS_V2,font),fg:color(0),bg:color(1),accent:color(2),pattern:choice(URL_PATTERNS_V2,pattern),effect:choice(URL_EFFECTS_V2,effect),align:choice(URL_ALIGNS_V2,align),size:size+40,animation:choice(URL_ANIMATIONS_V2,animation),pace:choice(URL_PACES_V2,pace),repeat:!!repeat,backdrop:choice(URL_BACKDROPS_V2,backdrop),backdropMotion:!!backdropMotion,galaxyQuality:choice(URL_GALAXY_QUALITIES_V2,galaxyQuality),galaxyCamera:!!galaxyCamera,trailerGalaxy:!!trailerGalaxy,trailerMix:!!trailerMix,trailerSeed,trailerParticles:!!trailerParticles,particleDensity:particleDensity+1,particleInteraction:!!particleInteraction});
+}
 const oneOf = (value, values) => values.includes(value);
 export function validateState(s) {
  if (!s || typeof s !== 'object' || s.v !== 1) throw new Error('Este enlace usa un formato que todavía no podemos abrir.');
@@ -118,12 +178,14 @@ export function validateState(s) {
  return {galaxyQuality:s.galaxyQuality??'auto',galaxyCamera:s.galaxyCamera??true,trailerGalaxy:s.trailerGalaxy??false,trailerMix:s.trailerMix??false,trailerSeed:s.trailerSeed??0,trailerParticles:s.trailerParticles??false,particleDensity:s.particleDensity??2,particleInteraction:s.particleInteraction??true,v:1,text:s.text,font:s.font,fg:s.fg,bg:s.bg,pattern:s.pattern,effect:s.effect,align:s.align,size:s.size,animation:s.animation,pace:s.pace??'normal',repeat:s.repeat??false,backdrop:s.backdrop??'solid',accent:s.accent??'#8b5cf6',backdropMotion:s.backdropMotion??false};
 }
 export function encodeState(s) {
- const hash = '#v1='+LZString.compressToEncodedURIComponent(JSON.stringify(validateState(s)));
+ const hash = encodeCompactState(validateState(s));
  if(hash.length>MAX_HASH) throw new Error('El enlace es demasiado largo. Acorta un poco el mensaje.');
  return hash;
 }
 export function decodeState(hash) {
- if(typeof hash!=='string' || hash.length>MAX_HASH || !/^#v1=[A-Za-z0-9+\-$]+$/.test(hash)) throw new Error('Este enlace está incompleto o no es compatible.');
+ if(typeof hash!=='string' || hash.length>MAX_HASH) throw new Error('Este enlace está incompleto o no es compatible.');
+ if(/^#v2=[A-Za-z0-9_-]+$/.test(hash))return decodeCompactState(hash.slice(4));
+ if(!/^#v1=[A-Za-z0-9+\-$]+$/.test(hash)) throw new Error('Este enlace está incompleto o no es compatible.');
  const json=LZString.decompressFromEncodedURIComponent(hash.slice(4));
  if(!json || json.length>8000) throw new Error('No se puede leer este enlace.');
  try{return validateState(JSON.parse(json));} catch(e) {throw new Error(e instanceof SyntaxError ? 'El enlace no contiene un mensaje válido.' : e.message);}

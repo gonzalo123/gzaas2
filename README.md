@@ -38,7 +38,7 @@ El selector utiliza los nombres Español / English, sin banderas. Aparece en una
 esquina de la landing, en la cabecera del editor (ES/EN en móvil) y con los
 controles del visor. El cambio actualiza `html.lang`, el título, los controles
 y el subtítulo animado. Conserva el borrador, el diseño, la pausa y el enlace.
-El idioma de la interfaz no forma parte de `#v1`: cada destinatario usa su propia
+El idioma de la interfaz no forma parte de `#v2`: cada destinatario usa su propia
 preferencia. El texto del usuario y los archivos exportados no se traducen.
 
 `src/i18n.mjs` gestiona detección, persistencia e interpolación; `useI18n.tsx`
@@ -61,11 +61,11 @@ Este proyecto se publica en **https://gonzalo123.github.io/gzaas2/** con cada pu
 2. En Settings → Pages selecciona **GitHub Actions** como origen.
 3. El workflow `.github/workflows/pages.yml` comprueba tipos, ejecuta tests, construye y publica. Se puede relanzar desde Actions.
 
-`base: './'` permite alojarlo bajo `/gzaas2/` o en un dominio propio. Las URLs compartidas usan el fragmento `#v1=...`, no rutas que requieran reglas de servidor.
+`base: './'` permite alojarlo bajo `/gzaas2/` o en un dominio propio. Las URLs compartidas usan el fragmento `#v2=...`, no rutas que requieran reglas de servidor.
 
 ## Compartir
 
-`JSON → lz-string.compressToEncodedURIComponent → #v1=...`.
+Los enlaces nuevos usan `#v2=...`: opciones empaquetadas en bits, colores RGB y texto UTF-8. El texto repetitivo se comprime cuando ocupa menos. Todo el mensaje y el diseño están en el fragmento; `#v1=...` sigue siendo compatible. Como referencia, el estado inicial pasa de 443 a 59 caracteres de fragmento.
 
 «Compartir» prepara una imagen PNG del mensaje y permite compartirla junto con su enlace mediante el menú nativo del dispositivo. Tras crear un GIF también puedes compartir el archivo y el enlace. Se comprueba la compatibilidad con archivos en cada caso; si el navegador no la ofrece, descarga la imagen o el GIF y adjúntalo en tu chat junto al enlace copiado. La app de destino decide si conserva el texto del enlace junto al archivo. No se suben mensajes ni imágenes a ningún servidor. La demo `file://` comparte solo el archivo, ya que su dirección local no es accesible para el destinatario.
 
@@ -79,7 +79,7 @@ Máximo 280 caracteres Unicode, 12 líneas y 4096 caracteres de fragmento; la de
 
 ## Funciones
 
-- Inicio centrado en escribir: «gzaas!» tiene una entrada animada y una de tres combinaciones de tipografía, color y fondo elegida al abrir la landing. El logo sortea entradas breves entre Letras, Rebote, Órbita y versiones suaves de Plegado y Estelas, de una sola reproducción; la paleta sigue usando los fondos Malla, Aurora y Ondas. El fondo se detiene a los 4,5 segundos o al entrar en el campo; la combinación permanece estable al escribir. Respeta movimiento reducido. El subtítulo conserva DM Serif Display y se descifra de izquierda a derecha durante 1,2 segundos, después de una pausa inicial de medio segundo. Los símbolos son discretos y ocupan exactamente el espacio de sus letras; las palabras reservan desde el principio su composición final. Al terminar queda el texto nativo, sin cursor ni bucle. La animación es propia y reutiliza el ruido reproducible del proyecto, sin código de React Bits Pro. Con movimiento reducido o si falla la carga de la fuente aparece la frase completa. El formulario mantiene una sola acción principal, «gzaas it!», sin textos auxiliares visibles. Enter abre el editor con el mensaje y un estilo elegido al azar entre los 24 disponibles; Shift+Enter añade una línea. El campo crece y se encoge automáticamente con el texto, el pegado y el ancho de pantalla, sin scroll interior. Las opciones de diseño y movimiento aparecen después.
+- Inicio centrado en escribir: «gzaas!» tiene una entrada animada y una de tres combinaciones de tipografía, color y fondo elegida al abrir la landing. El logo sortea entradas breves entre Letras, Rebote, Órbita y versiones suaves de Plegado y Estelas, de una sola reproducción; la paleta sigue usando los fondos Malla, Aurora y Ondas. El fondo se detiene a los 4,5 segundos o al entrar en el campo; la combinación permanece estable al escribir. Respeta movimiento reducido. El subtítulo conserva DM Serif Display y se descifra de izquierda a derecha durante 1,2 segundos, después de una pausa inicial de medio segundo. Los símbolos son discretos y ocupan exactamente el espacio de sus letras; las palabras reservan desde el principio su composición final. Al terminar queda el texto nativo, sin cursor ni bucle. La animación es propia y reutiliza el ruido reproducible del proyecto, sin código de React Bits Pro. Con movimiento reducido o si falla la carga de la fuente aparece la frase completa. El formulario mantiene una sola acción principal, «gzaas it!», sin textos auxiliares visibles. Enter abre el visor con el mensaje y un estilo elegido al azar entre los 24 disponibles; «Crear mi versión» abre el editor. Shift+Enter añade una línea. El campo crece y se encoge automáticamente con el texto, el pegado y el ancho de pantalla, sin scroll interior. Las opciones de diseño y movimiento aparecen después.
 - Editor ajustado a la altura de la pantalla: vista previa siempre visible, controles en pestañas Texto / Estilos / Diseño / Fondos / Movimiento y acciones de compartir y descargar en la barra superior. Las pestañas se recorren con flechas, Home y End. En pantallas excepcionalmente pequeñas o con zoom, el panel de opciones permite desplazamiento sin mover la vista previa.
 - 24 estilos en cuatro colecciones de seis: Esenciales, Noche y neón, Pop y retro y Con carácter. Se recorren sin scroll.
 - Doce fuentes de Google Fonts incluidas localmente, con selector visual que muestra cada tipografía: Bebas Neue, DM Serif Display, DM Sans, Anton, Bungee, Bungee Shade, Monoton, Permanent Marker, Pacifico, Righteous, Space Grotesk y Abril Fatface.
@@ -123,7 +123,7 @@ Los enlaces anteriores conservan su coreografía clásica o de partículas.
 
 `particleDensity` (1–3, por defecto 2), `particleInteraction` (booleano, por
 defecto true), `trailerParticles` y `trailerMix` (booleanos, por defecto false)
-y `trailerSeed` (entero de 0 a 4294967295, por defecto 0) viajan en el mismo enlace `#v1=`. Los enlaces anteriores conservan
+y `trailerSeed` (entero de 0 a 4294967295, por defecto 0) viajan en el mismo enlace `#v2=`. Los enlaces anteriores conservan
 su animación y reciben estos valores sin cambiar su apariencia. No se añade
 ninguna dependencia, servicio, almacenamiento ni petición externa.
 
@@ -214,7 +214,7 @@ RAF y listeners. No se crea un contexto por fotograma.
 
 `galaxyQuality` (`auto`, `low`, `high`, por defecto `auto`), `galaxyCamera`
 (booleano, por defecto `true`) y `trailerGalaxy` (booleano, por defecto `false`)
-se validan y comparten en **el mismo `#v1=`**. El identificador del efecto es
+se validan y comparten en **el mismo `#v2=`**. El identificador del efecto es
 `particle-galaxy`. Los enlaces anteriores reciben valores seguros y mantienen
 sus animaciones y coreografías.
 
@@ -393,11 +393,11 @@ npm run build
 node scripts/package-preview.mjs gzaas-preview.html
 ```
 
-Abre `gzaas-preview.html` en un navegador moderno. Incluye el código, CSS y fuentes, sin CDN. Sirve para probar y descargar imágenes sin instalar Node. Los enlaces `file://` de esa copia local no sirven para compartir con otras personas: usa la versión publicada en Pages. El editor guarda automáticamente el último estado válido en `#edit:v1=...`; los enlaces para destinatarios usan `#v1=...` y abren la vista a pantalla completa.
+Abre `gzaas-preview.html` en un navegador moderno. Incluye el código, CSS y fuentes, sin CDN. Sirve para probar y descargar imágenes sin instalar Node. Los enlaces `file://` de esa copia local no sirven para compartir con otras personas: usa la versión publicada en Pages. El editor guarda automáticamente el último estado válido en `#edit:v2=...`; los enlaces para destinatarios usan `#v2=...` y abren la vista a pantalla completa. Los enlaces `v1` existentes siguen abriéndose.
 
 ## Validación de esta entrega
 
-Build de producción y comprobación TypeScript correctos. Setenta tests automáticos cubren partículas y Galaxy, integración y mezcla en tráiler, archivos compartidos, enlaces públicos y compatibilidad, formato de URL, colecciones completas, aleatorio, traducciones, descifrado, animaciones de texto y tiempos de exportación GIF. Revisión visual e interacción en Chrome en escritorio y móvil: colecciones, selector de fuentes, animación por letras y de fondos, pausa, repetición, visor, enlaces compartidos, créditos y movimiento reducido. Exportación GIF comprobada sin conexión desde la demo HTML: fuentes, efectos, tráiler completo, bucle, cancelación y PNG; archivos GIF decodificados para verificar fotogramas, tiempos y proporciones. El diálogo cabe sin scroll en las nueve resoluciones de escritorio y móvil revisadas. Compartir PNG y GIF con enlace comprobado con un menú nativo simulado, incluyendo activación del usuario, cancelación y descarga alternativa; no se ha enviado a WhatsApp. Metadatos sociales estáticos e imagen PNG de 1200 × 630 comprobados en el build; la tarjeta en apps de terceros se comprobará tras publicar. La integración WebMCP no se ha validado en un navegador que la implemente.
+Build de producción y comprobación TypeScript correctos. Las pruebas automáticas cubren partículas y Galaxy, integración y mezcla en tráiler, archivos compartidos, enlaces públicos y compatibilidad, formato de URL, colecciones completas, aleatorio, traducciones, descifrado, animaciones de texto y tiempos de exportación GIF. Revisión visual e interacción en Chrome en escritorio y móvil: colecciones, selector de fuentes, animación por letras y de fondos, pausa, repetición, visor, enlaces compartidos, créditos y movimiento reducido. Exportación GIF comprobada sin conexión desde la demo HTML: fuentes, efectos, tráiler completo, bucle, cancelación y PNG; archivos GIF decodificados para verificar fotogramas, tiempos y proporciones. El diálogo cabe sin scroll en las nueve resoluciones de escritorio y móvil revisadas. Compartir PNG y GIF con enlace comprobado con un menú nativo simulado, incluyendo activación del usuario, cancelación y descarga alternativa; no se ha enviado a WhatsApp. Metadatos sociales estáticos e imagen PNG de 1200 × 630 comprobados en el build; la tarjeta en apps de terceros se comprobará tras publicar. La integración WebMCP no se ha validado en un navegador que la implemente.
 
 Los fondos Silk, Iridescence, Threads, Color Bends, Plasma, Gradient Blinds,
 Light Rays, Balatro, Orb, Lightning, Dither, Dot Grid, Ripple Grid, Waves,

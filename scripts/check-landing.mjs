@@ -70,7 +70,7 @@ try{
    await page.screenshot({path:`${output}/failed-submit-${index}.png`});
    console.log({index,errors,landingError:await page.locator('#landing-error').allTextContents()});throw error;
   }
-  assert.ok(new URL(page.url()).hash.startsWith('#v1='),'the generated poster has a viewer link');
+  assert.ok(new URL(page.url()).hash.startsWith('#v2='),'the generated poster has a viewer link');
   if(index===0){
    assert.equal(await page.locator('.viewer').evaluate(node=>node.classList.contains('controls-visible')),true,'actions are introduced on arrival');
    await page.waitForTimeout(3200);
@@ -148,7 +148,7 @@ try{
   await reduced.getByRole('textbox',{name:'Tu mensaje',exact:true}).fill('Un fondo de '+collection.name);
   await draws(reduced,[.3,(BACKDROPS.findIndex(b=>b.id===id)+.5)/BACKDROPS.length,.7]);
   await reduced.getByRole('textbox',{name:'Tu mensaje',exact:true}).press('Enter');await reduced.locator('.viewer').waitFor();
-  await reduced.waitForURL(u=>u.hash.startsWith('#v1=')&&decodeState(u.hash).backdrop===id);
+  await reduced.waitForURL(u=>u.hash.startsWith('#v2=')&&decodeState(u.hash).backdrop===id);
   assert.equal(current(reduced).text,'Un fondo de '+collection.name);
  }
  // Exercise every catalog entry through the real buttons, including particles,
@@ -171,7 +171,7 @@ try{
   await reduced.getByRole('textbox',{name:'Tu mensaje',exact:true}).fill(message);
   await draws(reduced,[.3,.5/BACKDROPS.length,(i+.5)/ANIMATIONS.length]);
   await reduced.getByRole('textbox',{name:'Tu mensaje',exact:true}).press('Enter');await reduced.locator('.viewer').waitFor();
-  await reduced.waitForURL(u=>u.hash.startsWith('#v1=')&&decodeState(u.hash).animation===animation.id);
+  await reduced.waitForURL(u=>u.hash.startsWith('#v2=')&&decodeState(u.hash).animation===animation.id);
   await reduced.getByRole('button',{name:'Crear mi versión',exact:true}).click();await reduced.locator('.edit-app').waitFor();
   assert.equal(current(reduced).text,message);assert.equal(current(reduced).backdrop,'solid');
  }

@@ -14,7 +14,26 @@ test('background collections cover the catalog once and locate old/shared design
  for(const id of ['solid','aurora','waves','unknown'])assert.equal(isReactBitsBackdrop(id),false);
 });
 test('share round-trip preserves Spanish, emoji, line breaks and every style',()=>{for(const {name,sample,...style} of PRESETS){const s={...DEFAULT,...style,text:'¡Qué alegría! 👩🏽‍💻\n日本語 + / # & = <script>alert(1)</script>',align:'right',size:67,animation:'float'};assert.deepEqual(decodeState(encodeState(s)),s);}});
+test('v2 links are compact, self-contained and keep a stable codebook',()=>{
+ const old='#v1='+LZString.compressToEncodedURIComponent(JSON.stringify(DEFAULT)),short=encodeState(DEFAULT);
+ assert.equal(short,'#v2=ADlVjkMAJTgs2fZvt-xGSE9ZIFZBIEEKU0VSIFVOCkdSQU4gRMONQS4');
+ assert.ok(short.length<old.length/5,`${old.length} -> ${short.length}`);
+ assert.deepEqual(decodeState(short),DEFAULT);
+ const custom={...DEFAULT,text:'A'.repeat(280),font:'abril',fg:'#123456',bg:'#abcdef',accent:'#fedcba',pattern:'lines',effect:'echo',align:'right',size:40,animation:'particle-galaxy',pace:'fast',repeat:false,backdrop:'galaxy',backdropMotion:false,galaxyQuality:'high',galaxyCamera:false,trailerGalaxy:true,trailerMix:true,trailerSeed:4294967295,trailerParticles:true,particleDensity:3,particleInteraction:false};
+ assert.equal(encodeState(custom),'#v2=vkBCfTzAEjRWq83v_ty6_____yCNfGV07fwxTktW9HNiAAA');
+ assert.deepEqual(decodeState(encodeState(custom)),custom);
+ assert.ok(encodeState(custom).length<old.length,'repeated text uses the smaller text encoding');
+ const mixedCase={...custom,text:'Mayúsculas 👩🏽‍🚀',fg:'#aBcDeF',bg:'#ABCDEF',accent:'#123aBc'};
+ assert.deepEqual(decodeState(encodeState(mixedCase)),mixedCase);
+ const loneSurrogate={...DEFAULT,text:'Lone \ud800 unit'};
+ assert.deepEqual(decodeState(encodeState(loneSurrogate)),loneSurrogate);
+});
 test('reject malformed, unknown-version and oversized links',()=>{for(const input of ['#v2=abc','#v1=xxx','#v1=%00','#v1='+'A'.repeat(5000),'#',''])assert.throws(()=>decodeState(input));});
+test('v2 rejects malformed fields and noncanonical payloads',()=>{
+ const hash=encodeState(DEFAULT),bytes=Uint8Array.from(atob(hash.slice(4).replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
+ const mutate=change=>{const copy=bytes.slice();change(copy);return '#v2='+btoa(String.fromCharCode(...copy)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');};
+ for(const changed of [mutate(b=>b[0]|=0xf0),mutate(b=>b[5]|=1),mutate(b=>b[15]=255),hash+'='])assert.throws(()=>decodeState(changed));
+});
 test('reject CSS/URL injection, unsupported fields, empty and excessive text',()=>{for(const patch of [{fg:'url(https://bad.example)'},{font:'evil'},{v:2},{text:''},{text:'x'.repeat(281)},{text:'x\n'.repeat(13)},{size:NaN},{pattern:'evil'},{animation:'evil'}])assert.throws(()=>validateState({...DEFAULT,...patch}));});
 test('max-length multilingual messages survive URL encoding',()=>{for(const text of ['a'.repeat(280),'漢'.repeat(280),'👋'.repeat(280)]){const state={...DEFAULT,text};const hash=encodeState(state);assert.ok(hash.length<=4096);assert.deepEqual(decodeState(hash),state);}});
 test('drops unknown fields instead of injecting them into app state',()=>{const s=validateState({...DEFAULT,evil:'https://example.com'});assert.deepEqual(s,DEFAULT);});
