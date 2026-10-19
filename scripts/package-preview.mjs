@@ -5,6 +5,7 @@ import {build} from 'vite';
 const result=await build({logLevel:'warn',build:{write:false,rolldownOptions:{output:{codeSplitting:false}}}});
 const files=new Map(result.output.map(asset=>[asset.fileName,asset.type==='chunk'?asset.code:asset.source]));
 let html=String(files.get('index.html'));
+html=html.replace(/<link[^>]*rel="(?:manifest|apple-touch-icon)"[^>]*>/g,'');
 html=html.replace(/<script[^>]*src="([^"]+)"[^>]*><\/script>/g,(_,src)=>'<script type="module">'+String(files.get(src.replace(/^\.\//,''))).replaceAll('</script','<\\/script')+'</script>');
 html=html.replace(/<link[^>]*rel="stylesheet"[^>]*href="([^"]+)"[^>]*>/g,(_,src)=>'<style>'+files.get(src.replace(/^\.\//,''))+'</style>');
 html=html.replace('./favicon.svg','data:image/svg+xml,'+encodeURIComponent(fs.readFileSync('public/favicon.svg','utf8')));

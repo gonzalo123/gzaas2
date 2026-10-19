@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import {pwaPlugin} from './scripts/pwa-plugin.mjs';
 export default defineConfig({
  base:'./',build:{assetsInlineLimit:100000},
  plugins:[{
@@ -11,5 +12,5 @@ export default defineConfig({
    const page=html.replace('<html lang="es">','<html lang="es" data-gzaas-not-found>').replace('<head>',`<head><base href="${root}"><meta name="robots" content="noindex">`);
    this.emitFile({type:'asset',fileName:'404.html',source:page});
   },
- }],
+ },pwaPlugin()],
 });

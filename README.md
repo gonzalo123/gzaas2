@@ -55,6 +55,32 @@ La CI ejecuta estas pruebas y la regresión de la landing además de Galaxy.
 
 ## GitHub Pages
 
+### Instalación en el móvil
+
+La versión publicada es una PWA: se puede añadir a la pantalla de inicio y abrir
+en una ventana propia. En Android, pulsa **Instalar app** cuando Chrome ofrezca
+la instalación, o usa la opción de instalación de su menú. En iPhone/iPad, abre
+la web en Safari → **Compartir → Añadir a pantalla de inicio**; si aparece
+**Abrir como app web**, actívalo. El botón de la portada también muestra estos pasos.
+
+Tras una primera visita con conexión y la preparación de la caché, la aplicación,
+sus fuentes y los módulos de edición/exportación están disponibles sin conexión.
+El navegador puede eliminar esa caché si necesita espacio. Compartir con otros
+dispositivos sigue requiriendo una URL publicada y conexión para enviarla.
+Las nuevas versiones se activan al cerrar las ventanas anteriores de la app,
+sin recargar una edición en curso. Los mensajes siguen viviendo en su enlace;
+el icono abre la portada, no guarda automáticamente el último mensaje.
+
+La instalación requiere HTTPS (o localhost para desarrollo); no está disponible
+desde una IP local por HTTP ni en la demo `file://`. El service worker se genera
+solo en producción. Para verificarlo: `npm run build && npm run test:pwa`.
+La prueba usa el build real en `/` y `/gzaas2/`, comprueba la instalación con
+Chromium, el arranque sin conexión, las actualizaciones y la ayuda para iPhone.
+Los diálogos nativos de instalación y el comportamiento de Safari deben
+comprobarse también en dispositivos físicos.
+
+### Publicación
+
 Este proyecto se publica en **https://gonzalo123.github.io/gzaas2/** con cada push a `main`. Para desplegar tu propia copia:
 
 1. Crea un repositorio con rama `main` y sube este contenido (incluido package-lock.json).

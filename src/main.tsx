@@ -1,4 +1,6 @@
 import {useI18n,LanguageSelector} from './useI18n';
+import './pwa';
+import {InstallApp} from './InstallApp';
 import {isGalaxy} from './galaxy.mjs';
 import {isParticle} from './particles.mjs';
 import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
@@ -124,6 +126,7 @@ function App(){
  if(notFound)return <><NotFound reason={error} home={homePath} onHome={()=>recover()} onRemix={recover}/><OriginalCredit/></>;
  const stage=!landing&&!view?{'--poster-bg':state.bg,'--poster-fg':state.fg,'--poster-accent':state.accent} as React.CSSProperties:undefined;
  return <div style={stage} className={landing?'app landing':view?`app viewer${controlsVisible?' controls-visible':''}${closing?' viewer-closing':''}`:'app edit-app'}>
+ <InstallApp visible={landing&&!draft}/>
  {(landing||view)&&<LanguageSelector className={landing?'landing-language':'viewer-language'}/>}
  {landing&&<Landing draft={draft} error={error} flash={flash} onDraft={text=>{setDraft(text);setError('');}} onCreate={createMessage}/>}
  {!landing&&!view&&<><header className="topbar"><a className="logo" href={location.pathname} aria-label={t("Gzaas, inicio")}>gzaas<span>!</span></a><span className="editor-context">{t("Dale tu toque.")}</span><div className="editor-actions"><LanguageSelector/><button className="button secondary surprise-button" aria-label={t("Sorpréndeme")} title={t("Sorpréndeme")} disabled={roulette.spinning} onClick={surprise}><Icon name="shuffle"/><span>{t("Sorpréndeme")}</span></button><button className="button secondary download-button" aria-label={busy?t("Preparando imagen"):t("Descargar mensaje")} title={t("Descargar PNG o GIF")} disabled={invalid||busy} onClick={()=>setExportOpen(true)}><Icon name="download"/><span>{busy?t("Preparando…"):t("Descargar")}</span></button><button className="button primary share-button" aria-label={t("Compartir")} onClick={share} disabled={invalid}><Icon name="share"/><span>{t("Compartir")}</span></button></div></header>

@@ -1,5 +1,10 @@
 // Spanish source messages are stable keys. Values may contain {named} parameters.
 export default {
+ 'Instalar app':'Install app',
+ 'gzaas! en tu móvil':'gzaas! on your phone',
+ 'Abre esta página en Safari, pulsa Compartir y elige «Añadir a pantalla de inicio». Si aparece «Abrir como app web», actívalo y pulsa Añadir.':'Open this page in Safari, tap Share and choose “Add to Home Screen”. If “Open as Web App” appears, turn it on and tap Add.',
+ 'Abre el menú del navegador y elige «Instalar app» o «Añadir a pantalla de inicio», si está disponible.':'Open your browser menu and choose “Install app” or “Add to Home Screen”, if available.',
+ 'Entendido':'Got it',
  'ESTE MENSAJE\nSE HA IDO\nDE FIESTA.':'THIS MESSAGE\nWENT OUT\nTO PARTY.',
  '404 · Mensaje no encontrado':'404 · Message not found',
  '404 · Este mensaje se ha ido de fiesta.':'404 · This message went out to party.',

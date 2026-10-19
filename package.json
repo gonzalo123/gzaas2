@@ -15,7 +15,8 @@
     "test:i18n": "node scripts/check-i18n.mjs",
     "test:share": "node scripts/check-share.mjs",
     "test:not-found": "node scripts/check-not-found.mjs",
-    "test:text": "node scripts/check-text.mjs"
+    "test:text": "node scripts/check-text.mjs",
+    "test:pwa": "node scripts/check-pwa.mjs"
   },
   "dependencies": {
     "@fontsource/abril-fatface": "^5.3.0",
