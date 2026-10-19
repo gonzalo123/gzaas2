@@ -32,6 +32,16 @@ try{
   const profile=await mkdtemp(resolve(tmpdir(),'gzaas-pwa-'));profiles.push(profile);
   const context=await chromium.launchPersistentContext(profile,{headless:true,executablePath:process.env.CHROME_PATH||undefined,locale:'es-ES',viewport:{width:390,height:844},reducedMotion:'reduce'});contexts.push(context);
   const page=await context.newPage(),errors=[];
+  await page.addInitScript(()=>{
+   // Native prompt timing depends on browser heuristics (and may never fire in CI).
+   // Keep the real CDP installability check, but control the UI event in this test.
+   const listen=window.addEventListener.bind(window);
+   listen('beforeinstallprompt',event=>{if(event.isTrusted){event.preventDefault();event.stopImmediatePropagation();}});
+   window.addEventListener=(type,listener,options)=>{
+    listen(type,listener,options);
+    if(type==='beforeinstallprompt')window.installListenerReady=true;
+   };
+  });
   page.on('pageerror',error=>errors.push(error.message));
   await page.goto(origin+mount);
   await page.locator('.landing').waitFor();
@@ -63,7 +73,7 @@ try{
   await page.getByRole('button',{name:'Descargar mensaje',exact:true}).click();
   await page.locator('.export-dialog').waitFor();
   await context.setOffline(false);await page.goto(origin+mount);
-  await page.getByRole('button',{name:'Instalar app',exact:true}).waitFor();
+  await page.waitForFunction(()=>window.installListenerReady===true);
   // Browser prompts are one-shot; only an explicit click may open one.
   for(const outcome of ['dismissed','accepted']){
    await page.evaluate(async outcome=>{
